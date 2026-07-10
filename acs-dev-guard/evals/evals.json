@@ -1,0 +1,19 @@
+{
+  "skill_name": "acs-dev-guard",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "revue-commit-violations",
+      "prompt": "Je m'apprête à committer ça sur le repo du projet (plateforme Laravel/PostgreSQL suivant les standards ACS Groupe). Les fichiers modifiés sont dans le dossier fixtures/commit-a-verifier/ : PaiementController.php (nouveau contrôleur), routes-diff.txt (la route ajoutée) et message-commit.txt (mon message de commit). Vérifie si je peux committer.",
+      "expected_output": "Rapport de conformité au format ACS Dev Guard, verdict NON CONFORME, identifiant au minimum : le secret en dur (rotation exigée), les injections SQL par concaténation, la logique métier + accès DB direct dans le contrôleur, le N+1 (requêtes en boucle), le montant en flottant, la route sans policy ni audit, l'appel HTTP sans timeout, le TODO sans ticket, le message de commit non conventionnel. Chaque constat avec fichier:ligne, règle source et correction actionnable.",
+      "files": ["fixtures/commit-a-verifier/"]
+    },
+    {
+      "id": 1,
+      "eval_name": "question-convention-api",
+      "prompt": "Sur notre projet on suit les standards ACS Groupe. Je dois créer une nouvelle route GET /v1/projets qui liste les projets avec recherche et tri. Comment je dois m'y prendre pour être conforme ? donne moi les règles à respecter",
+      "expected_output": "Réponse citant les règles du corpus : contrat OpenAPI en premier commit (contract-first), pagination obligatoire (curseur si volumineux), erreurs RFC 9457, policy deny-by-default + tests de permission dans les deux sens, filtrage/tri standardisés, rate limiting, dates ISO 8601 UTC, avec renvois aux documents de référence (11-conception-api, 04-regles-architecture).",
+      "files": []
+    }
+  ]
+}

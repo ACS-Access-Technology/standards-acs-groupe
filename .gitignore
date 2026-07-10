@@ -1,0 +1,5 @@
+node_modules/
+.DS_Store
+*.log
+# artefacts locaux de travail
+acs-dev-guard-workspace/
