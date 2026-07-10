@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import CursusMap from './components/CursusMap.vue'
 import ModulePanel from './components/ModulePanel.vue'
+import DocViewer from './components/DocViewer.vue'
 import { modules } from './data/modules.js'
 import { profils } from './data/lectures.js'
 
@@ -14,6 +15,7 @@ function charger() {
 const progression = ref(charger())
 const moduleActif = ref(null)
 const carteRef = ref(null)
+const docActif = ref(null)
 
 function fermerFiche() {
   moduleActif.value = null
@@ -101,7 +103,10 @@ function reinitialiser() {
       @fermer="fermerFiche()"
       @objectif="i => basculerObjectif(moduleActif.id, i)"
       @termine="basculerTermine(moduleActif.id)"
+      @lire="d => docActif = d"
     />
+
+    <DocViewer v-if="docActif" :doc="docActif" @fermer="docActif = null" />
   </div>
 </template>
 

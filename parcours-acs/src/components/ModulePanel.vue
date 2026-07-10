@@ -12,9 +12,7 @@ const props = defineProps({
 })
 
 const lecture = computed(() => lectures[props.module.id]?.[props.profil] || null)
-const emit = defineEmits(['fermer', 'objectif', 'termine'])
-
-const DOCS_URL = 'https://github.com/acs-groupe/standards-acs-groupe/blob/main/'
+const emit = defineEmits(['fermer', 'objectif', 'termine', 'lire'])
 
 const prerequisTitres = computed(() =>
   props.module.prerequis.map(p => modules.find(m => m.id === p)?.titre)
@@ -80,9 +78,9 @@ const objectifsCoches = computed(() =>
           <div class="carte-bloc">
             <h3>Liens utiles</h3>
             <ul>
-              <li><a :href="DOCS_URL + module.doc" target="_blank" rel="noopener">Le document complet</a></li>
-              <li><a :href="DOCS_URL + 'README.md'" target="_blank" rel="noopener">Le README du corpus</a></li>
-              <li><a :href="DOCS_URL + '10-gabarits.md'" target="_blank" rel="noopener">Les gabarits</a></li>
+              <li><a href="#" @click.prevent="emit('lire', module.doc)">Le document complet</a></li>
+              <li><a href="#" @click.prevent="emit('lire', 'README.md')">Le README du corpus</a></li>
+              <li><a href="#" @click.prevent="emit('lire', '10-gabarits.md')">Les gabarits</a></li>
             </ul>
           </div>
         </div>
@@ -113,7 +111,7 @@ const objectifsCoches = computed(() =>
 
         <p class="titre-section">2. Ressources</p>
         <div class="carte-liste">
-          <a class="ligne lien" :href="DOCS_URL + module.doc" target="_blank" rel="noopener">
+          <a class="ligne lien" href="#" @click.prevent="emit('lire', module.doc)">
             <span>{{ module.doc }}</span>
           </a>
         </div>
