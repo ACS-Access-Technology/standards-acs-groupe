@@ -44,4 +44,4 @@ Suite à la revue de complétude (`REVUE-COMPLETUDE-2026-07-10.md`) :
 
 ## v1.0 — 10 juillet 2026
 
-Corpus initial (11 documents), dérivé de l'Offre technique DGPSP v1.0 et des manuels du standard ACS Groupe (dev-devops-securite, tests-recette, security-md).
+Corpus initial (11 documents), dérivé d'une offre technique de référence v1.0 et des manuels du standard ACS Groupe (dev-devops-securite, tests-recette, security-md).

@@ -36,7 +36,7 @@
 
 L'exigence est **l'isolation vérifiable au niveau du moteur** : RLS PostgreSQL, Row-Level Security SQL Server, politiques Oracle VPD, règles équivalentes MySQL/MariaDB via vues ou proxy. Si le moteur retenu ne sait pas le faire, le dossier d'architecture doit justifier le mécanisme compensatoire.
 
-## 4. Exemple de déclinaison : plateforme PHP/Laravel (référence DGPSP)
+## 4. Exemple de déclinaison : plateforme PHP/Laravel
 
 | Fonction | Outil retenu | Version minimale de sécurité |
 |---|---|---|

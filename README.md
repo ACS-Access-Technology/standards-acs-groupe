@@ -6,7 +6,7 @@
 | **Public** | Développeurs, DevOps/SRE, Sécurité, QA — et tout nouvel arrivant |
 | **Version** | 1.2 — Juillet 2026 (voir `CHANGELOG.md`) |
 | **Portée** | Indépendant de la stack : tout langage, tout framework, tout SGBD, tout cloud |
-| **Origine** | Consolidé depuis le référentiel ACS Groupe et éprouvé sur la plateforme DGPSP (Offre technique v1.0) |
+| **Origine** | Consolidé depuis le référentiel ACS Groupe et éprouvé en conditions réelles de production |
 
 Ce corpus est **contractuel, pas indicatif** : un travail qui ne satisfait pas les Definition of Done n'est pas terminé, quel que soit le temps investi. En cas de conflit entre vitesse et standard, le standard gagne.
 

@@ -14,7 +14,7 @@
 
 ## 3. Nommage et internationalisation
 
-- Nommage et messages **en anglais dans le code** (variables, fonctions, commits) — sauf consigne client contraire explicite (certains projets, comme DGPSP, imposent le français : la consigne client prime, consignée dans le mémoire projet).
+- Nommage et messages **en anglais dans le code** (variables, fonctions, commits) — sauf consigne client contraire explicite (certains projets imposent le français : la consigne client prime, consignée dans le mémoire projet).
 - **Textes utilisateur externalisés (i18n) dès le premier commit** — jamais de chaîne en dur dans le code.
 
 ## 4. Frontend
