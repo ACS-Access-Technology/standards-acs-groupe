@@ -7,10 +7,10 @@ Skill Claude Code : **police et coach des standards de développement ACS Groupe
 ```bash
 # Dans le dépôt du projet (skill partagé par l'équipe) :
 mkdir -p .claude/skills
-git clone https://github.com/acs-groupe/acs-dev-guard .claude/skills/acs-dev-guard
+git clone https://github.com/ACS-Access-Technology/acs-dev-guard .claude/skills/acs-dev-guard
 
 # Ou en skill personnel (tous vos projets) :
-git clone https://github.com/acs-groupe/acs-dev-guard ~/.claude/skills/acs-dev-guard
+git clone https://github.com/ACS-Access-Technology/acs-dev-guard ~/.claude/skills/acs-dev-guard
 ```
 
 Vérifiez avec `claude` puis `/skills` : `acs-dev-guard` doit apparaître.
