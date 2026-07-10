@@ -21,7 +21,13 @@ function fermerFiche() {
   moduleActif.value = null
   carteRef.value?.recentrer()   // dézoom automatique : on revoit toute la carte
 }
+const premiereVisite = ref(!localStorage.getItem('parcours-acs-profil'))
 const profil = ref(localStorage.getItem('parcours-acs-profil') || 'junior')
+
+function choisirProfil(id) {
+  profil.value = id
+  premiereVisite.value = false
+}
 watch(profil, v => localStorage.setItem('parcours-acs-profil', v))
 const logoOk = ref(true)
 const logoUrl = import.meta.env.BASE_URL + 'logo-acs.png'
@@ -107,6 +113,17 @@ function reinitialiser() {
     />
 
     <DocViewer v-if="docActif" :doc="docActif" @fermer="docActif = null" />
+
+    <div v-if="premiereVisite" class="bienvenue-voile">
+      <div class="bienvenue">
+        <h2>Bienvenue dans le parcours ACS 👋</h2>
+        <p>Chaque point de la carte est un module des standards de développement. Tu ouvres un module, tu lis, tu coches ses objectifs — et le suivant se débloque. Suis le badge « Commence ici ».</p>
+        <p><strong>Choisis ton profil</strong> : il adapte seulement la façon d'expliquer (plus d'exemples pour un junior, la règle sèche pour un senior). Les règles et les objectifs sont les mêmes pour tout le monde — et tu peux changer à tout moment en haut de l'écran.</p>
+        <div class="choix">
+          <button v-for="pr in profils" :key="pr.id" @click="choisirProfil(pr.id)">{{ pr.label }}</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -173,6 +190,22 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
   color: var(--muted); cursor: pointer; border-radius: 6px;
 }
 .profil-choix button.actif { background: var(--primaire); color: var(--sur-primaire); font-weight: 500; }
+.bienvenue-voile {
+  position: fixed; inset: 0; z-index: 40; background: rgba(18, 28, 66, .45);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.bienvenue {
+  width: min(520px, 100%); background: var(--card); border-radius: 8px; box-shadow: var(--ring);
+  padding: 32px; display: flex; flex-direction: column; gap: 14px;
+}
+.bienvenue h2 { font-size: 22px; font-weight: 700; color: var(--texte-plein); }
+.bienvenue p { font-size: 15px; line-height: 1.6; }
+.choix { display: flex; gap: 10px; margin-top: 6px; }
+.choix button {
+  flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer;
+  background: var(--primaire); color: var(--sur-primaire); font-size: 15px; font-weight: 500; font-family: inherit;
+}
+.choix button:hover { opacity: .9; }
 .score { display: flex; align-items: center; gap: 12px; font-size: 13px; }
 .barre { width: 180px; height: 8px; background: var(--bordure); border-radius: 8px; overflow: hidden; }
 .remplissage { height: 100%; background: linear-gradient(90deg, #e8262d, #f28c1f, #1b2a9e); transition: width .3s; }

@@ -27,6 +27,8 @@ const prerequisManquants = computed(() =>
 const objectifsCoches = computed(() =>
   props.module.objectifs.filter((_, i) => props.progression?.objectifs?.[i]).length
 )
+
+const toutCoche = computed(() => objectifsCoches.value === props.module.objectifs.length)
 </script>
 
 <template>
@@ -85,9 +87,15 @@ const objectifsCoches = computed(() =>
           </div>
         </div>
 
-        <button class="valider" :class="{ fait: progression?.termine }" @click="emit('termine')">
+        <button
+          class="valider" :class="{ fait: progression?.termine }"
+          :disabled="!progression?.termine && !toutCoche"
+          @click="emit('termine')"
+        >
           <CheckCircle2 :size="18" />
-          {{ progression?.termine ? 'Terminé — cliquer pour rouvrir' : 'Commencer ce module' }}
+          <template v-if="progression?.termine">Terminé — cliquer pour rouvrir</template>
+          <template v-else-if="toutCoche">J'ai terminé ce module</template>
+          <template v-else>Coche les objectifs pour terminer ({{ objectifsCoches }}/{{ module.objectifs.length }})</template>
         </button>
       </div>
 
@@ -177,6 +185,7 @@ h3 { font-size: 18px; font-weight: 700; color: var(--texte-plein); margin-bottom
   margin-top: 4px;
 }
 .valider.fait { background: var(--card); color: var(--primaire); box-shadow: var(--ring); }
+.valider:disabled { background: var(--bordure); color: var(--muted); cursor: not-allowed; }
 
 /* --- Colonne chapitres --- */
 .chapitres-col { display: flex; flex-direction: column; gap: 12px; }

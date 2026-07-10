@@ -15,6 +15,11 @@ function coord(id) {
   return { x: m.x, y: m.y }
 }
 
+const suivantId = () => {
+  const m = props.modules.find(x => !props.progression[x.id]?.termine && props.estDebloque(x))
+  return m ? m.id : null
+}
+
 function etat(m) {
   if (props.progression[m.id]?.termine) return 'termine'
   return props.estDebloque(m) ? 'debloque' : 'verrouille'
@@ -113,10 +118,11 @@ defineExpose({ recentrer })
 
       <button
         v-for="m in modules" :key="m.id"
-        class="noeud" :class="etat(m)"
+        class="noeud" :class="[etat(m), { suivant: m.id === suivantId() }]"
         :style="{ left: m.x + '%', top: m.y + '%' }"
         @click="clicNoeud(m)"
       >
+        <span v-if="m.id === suivantId()" class="badge-suivant">Commence ici</span>
         <span class="pastille">
           <svg class="socle" width="40" height="27" viewBox="0 0 40 27" aria-hidden="true">
             <ellipse cx="20" cy="13.5" rx="15" ry="8.5" />
@@ -184,6 +190,14 @@ defineExpose({ recentrer })
 .icone :deep(svg) { filter: drop-shadow(0 1px 1px rgba(18, 28, 66, .18)); }
 .libelle { font-size: 16px; font-weight: 700; color: var(--texte-plein); margin-top: 6px; }
 .etape { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.badge-suivant {
+  position: absolute; top: -26px; left: 50%; transform: translateX(-50%);
+  background: var(--primaire); color: var(--sur-primaire);
+  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 8px;
+  white-space: nowrap; animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-4px); } }
+.suivant .socle ellipse { stroke: var(--primaire); }
 .verrouille { opacity: .45; }
 .verrouille .icone { filter: grayscale(1); opacity: .8; }
 
