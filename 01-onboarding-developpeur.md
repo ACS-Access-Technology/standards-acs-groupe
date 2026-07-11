@@ -1,8 +1,8 @@
 # 01 — Onboarding développeur
 
-> Objectif : un nouveau développeur livre sa première PR conforme en une semaine, et est autonome sur un module en un mois. Ce parcours est le même pour tous, quel que soit le niveau.
+> Objectif : un nouveau développeur livre sa première PR conforme à T2, et est autonome sur un module à T3. Ce parcours est le même pour tous, quel que soit le niveau — le rythme (T1, T2, T3…) s'adapte à la personne, pas à un calendrier imposé.
 
-## Jour 1 — Accès et cadre
+## T1 — Accès et cadre
 
 ### Accès à provisionner (par le responsable technique, tracés dans le registre des accès)
 
@@ -13,7 +13,7 @@
 - [ ] Coffre-fort de secrets : accès au périmètre strictement nécessaire
 - [ ] Outils de suivi (tickets, supervision en lecture)
 
-### Lectures obligatoires du jour 1
+### Lectures obligatoires de T1
 
 1. Le **dossier d'architecture technique du projet** (c'est la loi du projet).
 2. Les **interdictions absolues** ci-dessous — à relire jusqu'à les connaître par cœur.
@@ -30,7 +30,7 @@
 
 Une violation d'interdiction absolue est un incident de sécurité, pas une erreur de débutant : elle se signale immédiatement, elle ne se cache pas.
 
-## Semaine 1 — Environnement et première PR
+## T2 — Environnement et première PR
 
 - [ ] Environnement local monté depuis la documentation du dépôt (si la doc ne suffit pas, la corriger est votre **première PR**).
 - [ ] Suite de tests exécutée localement en vert ; pipeline CI compris étape par étape (`07-cicd-supply-chain.md`).
@@ -38,7 +38,7 @@ Une violation d'interdiction absolue est un incident de sécurité, pas une erre
 - [ ] Première PR livrée sur un ticket balisé « bon premier ticket » : petite (< 400 lignes), un seul sujet, accompagnée par un développeur référent.
 - [ ] Revue de cette PR faite en binôme : c'est là que s'apprennent les conventions réelles du projet.
 
-## Mois 1 — Autonomie
+## T3 — Autonomie
 
 - [ ] A livré des PR sur au moins deux modules différents, dont une touchant un test de permission (accès accordé ET refusé).
 - [ ] Sait écrire une migration expand/contract et un événement outbox conformes (`04-regles-architecture.md`).
@@ -52,7 +52,7 @@ Une violation d'interdiction absolue est un incident de sécurité, pas une erre
 - Le **contrat OpenAPI** et les **schémas d'événements** : la source de vérité des interfaces. Le code s'y conforme, jamais l'inverse.
 - Les **consignes spécifiques du client** (mémoire projet, exclusions, vocabulaire imposé) : elles s'appliquent à tout livrable, y compris les messages de commit et la documentation.
 
-## Checklist poste de travail (Jour 1, avant tout accès au code)
+## Checklist poste de travail (T1, avant tout accès au code)
 
 Le poste de travail est le premier maillon de la chaîne de compromission : un portable volé non chiffré vaut une fuite complète du périmètre accessible.
 
@@ -79,7 +79,7 @@ L'onboarding n'est terminé que lorsque les preuves suivantes sont consignées d
 
 ## Cycle Joiner / Mover / Leaver
 
-L'arrivée (Joiner, jour 1), le changement de rôle (Mover, ci-dessous) et le départ (Leaver, section suivante) suivent chacun une checklist tracée dans le registre des accès : les accès fantômes naissent presque toujours d'un mouvement interne non traité.
+L'arrivée (Joiner, T1), le changement de rôle (Mover, ci-dessous) et le départ (Leaver, section suivante) suivent chacun une checklist tracée dans le registre des accès : les accès fantômes naissent presque toujours d'un mouvement interne non traité.
 
 ### Changement de rôle (Mover) — revue d'accès obligatoire
 

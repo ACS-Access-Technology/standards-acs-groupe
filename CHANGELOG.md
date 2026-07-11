@@ -1,5 +1,14 @@
 # Changelog du corpus
 
+## v1.2.1 — 11 juillet 2026
+
+> **Motif** : le repère calendaire (Jour 1 / Semaine 1 / Mois 1) dans le parcours d'onboarding suggérait un rythme imposé, alors que le principe du corpus est un parcours auto-rythmé (voir `parcours-acs`, terminaison conditionnée aux objectifs, pas à une date). **Impact** : terminologie uniquement, aucune règle [MUST]/[SHOULD]/[MAY] modifiée. **Entrée en vigueur** : immédiate. **Preuve attendue** : aucune (changement rédactionnel).
+
+### Changed
+
+- **README** : table « Parcours du nouveau développeur » — colonne `Jour` → `Temps`, repères `J1`/`J1–J2`/`Semaine 2`… remplacés par une séquence relative `T1`…`T6` ; titre de section « ordre de lecture imposé » → « ordre de lecture recommandé, à ton rythme ».
+- **01-onboarding-developpeur.md** : titres de section `Jour 1` / `Semaine 1` / `Mois 1` → `T1` / `T2` / `T3` ; les échéances de conformité opérationnelles (revue d'accès à J+30, revue de rôle sous 5 jours ouvrés) sont **conservées inchangées** — ce sont des délais de sécurité, pas un rythme d'apprentissage.
+
 ## v1.2 — 10 juillet 2026
 
 > **Entrée en vigueur** : immédiate pour tout nouveau projet. Projets existants : mise en conformité exigée à la **prochaine porte** du cycle de vie (`12-cycle-de-vie-projet.md`).
