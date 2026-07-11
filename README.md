@@ -6,7 +6,7 @@
 |---|---|
 | **Statut** | Standard interne ACS Groupe — applicable à tout projet de plateforme |
 | **Public** | Développeurs, DevOps/SRE, Sécurité, QA — et tout nouvel arrivant |
-| **Version** | 1.2 — Juillet 2026 (voir `CHANGELOG.md`) |
+| **Version** | 1.2.1 — Juillet 2026 (voir `CHANGELOG.md`) |
 | **Portée** | Indépendant de la stack : tout langage, tout framework, tout SGBD, tout cloud |
 | **Origine** | Consolidé depuis le référentiel ACS Groupe et éprouvé en conditions réelles de production |
 
