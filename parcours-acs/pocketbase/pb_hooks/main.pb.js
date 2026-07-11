@@ -18,54 +18,86 @@
 // - $security.sha256(texte) est disponible pour recalculer le hash côté serveur (vérifié :
 //   même digest que hashlib.sha256 côté Python).
 //
-// Duplication volontaire (Winston, revue party mode, 3e passe) : les deux hooks progressions
-// (create/update ci-dessous) contiennent la même logique de validation copiée-collée, PAS
-// factorisée — voir la contrainte de scoping ci-dessus. Si tu corriges un bug dans l'un,
-// répercute-le dans l'autre à la main.
+// Duplication volontaire : les deux hooks progressions (create/update ci-dessous) contiennent
+// la même logique de validation copiée-collée, PAS factorisée en top-level — voir la contrainte
+// de scoping ci-dessus. Si tu corriges un bug dans l'un, répercute-le dans l'autre à la main.
+// Les helpers (lireJson / verifierCoherence / noter) sont déclarés À L'INTÉRIEUR de chaque
+// callback : autorisé par le runtime, et ça garde chaque hook sous le seuil de complexité
+// cognitive (SonarCloud S3776 — le hook create était à 16/15 avant ce découpage).
 
 onRecordCreateRequest((e) => {
   const bareme = require(`${__hooks}/bareme.json`)
-  const brut = e.record.get('donnees')
-  const texte = brut == null ? '' : (Array.isArray(brut) ? String.fromCharCode(...brut) : String(brut))
-  const donnees = texte ? JSON.parse(texte) : null
-  if (donnees) {
-    const moduleId = e.record.get('module')
-    const corrige = bareme[moduleId]
+
+  // Helpers locaux au callback (le scoping top-level est interdit sur ce runtime, le local non).
+  const lireJson = (brut) => {
+    if (brut == null) return null
+    const texte = Array.isArray(brut) ? String.fromCharCode(...brut) : String(brut)
+    return texte ? JSON.parse(texte) : null
+  }
+  const verifierCoherence = (donnees, moduleId, corrige) => {
     if (donnees.termine && corrige && !Array.isArray(donnees.reponses)) {
       throw new Error(`module "${moduleId}" marqué terminé sans réponses de quiz soumises`)
     }
-    if (Array.isArray(donnees.reponses)) {
-      if (!corrige) throw new Error(`module inconnu : ${moduleId}`)
-      if (donnees.reponses.length !== corrige.length) throw new Error(`nombre de réponses invalide pour ${moduleId} : attendu ${corrige.length}`)
-      const bonnes = donnees.reponses.filter((r, i) => r === corrige[i]).length
-      donnees.quizScore = Math.round((bonnes / corrige.length) * 100)
-      donnees.scoreSource = 'server'
-      e.record.set('donnees', donnees)
+    if (!Array.isArray(donnees.reponses)) return false
+    if (!corrige) throw new Error(`module inconnu : ${moduleId}`)
+    if (donnees.reponses.length !== corrige.length) {
+      throw new Error(`nombre de réponses invalide pour ${moduleId} : attendu ${corrige.length}`)
     }
+    return true
   }
+  const noter = (reponses, corrige) => {
+    const bonnes = reponses.filter((r, i) => r === corrige[i]).length
+    return Math.round((bonnes / corrige.length) * 100)
+  }
+
+  const donnees = lireJson(e.record.get('donnees'))
+  if (!donnees) return e.next()
+
+  const moduleId = e.record.get('module')
+  const corrige = bareme[moduleId]
+  if (!verifierCoherence(donnees, moduleId, corrige)) return e.next()
+
+  donnees.quizScore = noter(donnees.reponses, corrige)
+  donnees.scoreSource = 'server'
+  e.record.set('donnees', donnees)
   e.next()
 }, 'progressions')
 
 onRecordUpdateRequest((e) => {
   const bareme = require(`${__hooks}/bareme.json`)
-  const brut = e.record.get('donnees')
-  const texte = brut == null ? '' : (Array.isArray(brut) ? String.fromCharCode(...brut) : String(brut))
-  const donnees = texte ? JSON.parse(texte) : null
-  if (donnees) {
-    const moduleId = e.record.get('module')
-    const corrige = bareme[moduleId]
+
+  // Helpers locaux au callback (le scoping top-level est interdit sur ce runtime, le local non).
+  const lireJson = (brut) => {
+    if (brut == null) return null
+    const texte = Array.isArray(brut) ? String.fromCharCode(...brut) : String(brut)
+    return texte ? JSON.parse(texte) : null
+  }
+  const verifierCoherence = (donnees, moduleId, corrige) => {
     if (donnees.termine && corrige && !Array.isArray(donnees.reponses)) {
       throw new Error(`module "${moduleId}" marqué terminé sans réponses de quiz soumises`)
     }
-    if (Array.isArray(donnees.reponses)) {
-      if (!corrige) throw new Error(`module inconnu : ${moduleId}`)
-      if (donnees.reponses.length !== corrige.length) throw new Error(`nombre de réponses invalide pour ${moduleId} : attendu ${corrige.length}`)
-      const bonnes = donnees.reponses.filter((r, i) => r === corrige[i]).length
-      donnees.quizScore = Math.round((bonnes / corrige.length) * 100)
-      donnees.scoreSource = 'server'
-      e.record.set('donnees', donnees)
+    if (!Array.isArray(donnees.reponses)) return false
+    if (!corrige) throw new Error(`module inconnu : ${moduleId}`)
+    if (donnees.reponses.length !== corrige.length) {
+      throw new Error(`nombre de réponses invalide pour ${moduleId} : attendu ${corrige.length}`)
     }
+    return true
   }
+  const noter = (reponses, corrige) => {
+    const bonnes = reponses.filter((r, i) => r === corrige[i]).length
+    return Math.round((bonnes / corrige.length) * 100)
+  }
+
+  const donnees = lireJson(e.record.get('donnees'))
+  if (!donnees) return e.next()
+
+  const moduleId = e.record.get('module')
+  const corrige = bareme[moduleId]
+  if (!verifierCoherence(donnees, moduleId, corrige)) return e.next()
+
+  donnees.quizScore = noter(donnees.reponses, corrige)
+  donnees.scoreSource = 'server'
+  e.record.set('donnees', donnees)
   e.next()
 }, 'progressions')
 
@@ -91,25 +123,31 @@ onRecordCreateRequest((e) => {
   // L'index unique (dev, module) du schéma empêche déjà les doublons — on trie quand même
   // explicitement par mise à jour la plus récente et on ne garde que la première occurrence
   // par module, au cas où cette garantie schema venait à changer.
+  const lireJson = (brut) => {
+    if (brut == null) return null
+    const texte = Array.isArray(brut) ? String.fromCharCode(...brut) : String(brut)
+    return texte ? JSON.parse(texte) : null
+  }
+
   const parModule = {}
   for (const p of progressions) {
     const moduleId = p.get('module')
     if (parModule[moduleId]) continue
-    const brut = p.get('donnees')
-    const texte = brut == null ? '' : (Array.isArray(brut) ? String.fromCharCode(...brut) : String(brut))
-    parModule[moduleId] = texte ? JSON.parse(texte) : null
+    parModule[moduleId] = lireJson(p.get('donnees'))
   }
 
-  const manquants = []
-  const modulesValides = []
-  for (const m of Object.keys(bareme)) {
-    const donnees = parModule[m]
-    if (!donnees || !donnees.termine || donnees.scoreSource !== 'server' || (donnees.quizScore || 0) < 75) {
-      manquants.push(m)
-    } else {
-      modulesValides.push({ id: m, termine: true, quizScore: donnees.quizScore, quizDate: donnees.quizDate || null, versionCorpusValidation: donnees.versionCorpus || null })
-    }
-  }
+  const estValide = (d) => !!d && d.termine && d.scoreSource === 'server' && (d.quizScore || 0) >= 75
+
+  const manquants = Object.keys(bareme).filter((m) => !estValide(parModule[m]))
+  const modulesValides = Object.keys(bareme)
+    .filter((m) => estValide(parModule[m]))
+    .map((m) => ({
+      id: m,
+      termine: true,
+      quizScore: parModule[m].quizScore,
+      quizDate: parModule[m].quizDate || null,
+      versionCorpusValidation: parModule[m].versionCorpus || null,
+    }))
   if (manquants.length > 0) {
     throw new Error(`attestation refusée — modules non validés côté serveur : ${manquants.join(', ')}`)
   }
@@ -122,9 +160,7 @@ onRecordCreateRequest((e) => {
   // Niveau 9" passait sans contrôle). Tout ce qui prouve la conformité (modules, scores) vient
   // exclusivement des progressions server-validated ci-dessus.
   const PROFILS_CONNUS = ['junior', 'intermediaire', 'senior']
-  const brutClient = e.record.get('contenu')
-  const texteClient = brutClient == null ? '' : (Array.isArray(brutClient) ? String.fromCharCode(...brutClient) : String(brutClient))
-  const contenuClient = texteClient ? JSON.parse(texteClient) : {}
+  const contenuClient = lireJson(e.record.get('contenu')) || {}
   const profilDeclare = contenuClient.dev && contenuClient.dev.profil
   const profil = PROFILS_CONNUS.indexOf(profilDeclare) !== -1 ? profilDeclare : null
 
