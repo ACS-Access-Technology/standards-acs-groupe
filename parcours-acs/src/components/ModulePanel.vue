@@ -1,9 +1,10 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { modules } from '../data/modules.js'
 import { lectures } from '../data/lectures.js'
 import { quiz } from '../data/quiz.js'
-import { icones, X, Lock, BookOpen, CheckCircle2 } from '../data/icones.js'
+import { versionActuelle } from '../services/corpusVersion.js'
+import { icones, X, Lock, BookOpen, CheckCircle2, AlertTriangle } from '../data/icones.js'
 import Quiz from './Quiz.vue'
 
 const props = defineProps({
@@ -21,6 +22,12 @@ const quizOuvert = ref(false)
 // Réinitialisé à chaque (ré)ouverture de la fiche : l'échec impose de refermer/rouvrir pour retenter.
 const quizDisponible = ref(true)
 const quizReussi = computed(() => (props.progression?.quizScore || 0) >= 75)
+
+const versionCourante = ref(null)
+onMounted(async () => { versionCourante.value = await versionActuelle() })
+const estObsolete = computed(() =>
+  !!(props.progression?.versionCorpus && versionCourante.value && props.progression.versionCorpus !== versionCourante.value)
+)
 
 function surEchecQuiz({ score }) {
   quizOuvert.value = false
@@ -107,6 +114,9 @@ const toutCoche = computed(() => objectifsCoches.value === props.module.objectif
           </div>
         </div>
 
+        <p v-if="progression?.termine && estObsolete" class="verrou obsolete">
+          <AlertTriangle :size="14" class="inline-ico" /> Validé sur une version antérieure du corpus (le contenu a évolué depuis). Ta validation reste enregistrée ; relis le module si tu veux la rafraîchir.
+        </p>
         <button
           v-if="progression?.termine || (toutCoche && quizReussi)"
           class="valider" :class="{ fait: progression?.termine }"
@@ -213,6 +223,7 @@ h1 { font-size: 22px; font-weight: 700; color: var(--primaire); }
 h1 { font-size: 24px; font-weight: 700; color: var(--primaire); text-align: center; }
 
 .verrou { background: #fbeeb1; color: #121c42; padding: 12px 16px; font-size: 14px; border-radius: 8px; }
+.verrou.obsolete { font-size: 13px; }
 
 .carte-bloc { background: var(--card); border-radius: 8px; padding: 16px; box-shadow: var(--ring); }
 .description p { font-size: 16px; line-height: 1.75; }
