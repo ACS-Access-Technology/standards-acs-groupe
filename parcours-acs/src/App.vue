@@ -8,6 +8,7 @@ import Lexique from './components/Lexique.vue'
 import Connexion from './components/Connexion.vue'
 import * as synchro from './services/synchro.js'
 import QuizFinal from './components/QuizFinal.vue'
+import Attestation from './components/Attestation.vue'
 import { modules } from './data/modules.js'
 import { profils } from './data/lectures.js'
 
@@ -29,6 +30,7 @@ const docActif = ref(null)
 const lexiqueOuvert = ref(false)
 const quizOuvert = ref(false)
 const quizReussi = ref(localStorage.getItem('parcours-acs-quiz-reussi') === '1')
+const attestationOuverte = ref(false)
 
 function marquerQuizReussi() {
   quizReussi.value = true
@@ -164,6 +166,11 @@ function reinitialiser() {
           @click="quizOuvert = true"
         >Valider mes connaissances</button>
         <span v-else-if="quizReussi" class="quiz-ok">Connaissances validées ✓</span>
+        <button
+          v-if="stats.pct === 100"
+          class="valider-connaissances"
+          @click="attestationOuverte = true"
+        >Voir mon attestation</button>
         <button class="reset" @click="reinitialiser">Réinitialiser</button>
       </div>
     </header>
@@ -203,6 +210,7 @@ function reinitialiser() {
     <Lexique v-if="lexiqueOuvert" @fermer="lexiqueOuvert = false" />
     <Connexion v-if="connexionOuverte" @fermer="connexionOuverte = false" @fusion="fusionner" />
     <QuizFinal v-if="quizOuvert" @fermer="quizOuvert = false" @reussi="marquerQuizReussi" />
+    <Attestation v-if="attestationOuverte" :progression="progression" :profil="profil" @fermer="attestationOuverte = false" />
 
     <div v-if="premiereVisite" class="bienvenue-voile">
       <div
