@@ -12,4 +12,4 @@ export const icones = {
   SearchCheck, AlertTriangle, Route, Bot,
 }
 
-export { X, Lock, BookOpen, CheckCircle2, Download, Printer }
+export { X, Lock, BookOpen, CheckCircle2, Download, Printer, AlertTriangle }

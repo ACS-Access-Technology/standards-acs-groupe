@@ -6,6 +6,12 @@ Export possible en JSON (téléchargement direct) et en vue imprimable (bouton *
 
 Si le dev est connecté à PocketBase, l'attestation est aussi enregistrée dans la collection `attestations` (append-only, voir `pocketbase/README.md`).
 
+## Politique de gel de version (revue party mode, Winston/Fatima)
+
+Chaque module conserve, au moment où son quiz est réussi, la **version du corpus alors en vigueur** (`versionCorpus`, gelée — jamais recalculée après coup). Si le corpus évolue ensuite, ce module ne se réinvalide pas automatiquement : la fiche affiche un avertissement (« validé sur une version antérieure ») et l'attestation marque le module `obsolete: true`, sans bloquer la génération.
+
+**Choix assumé** : l'attestation est une **photo à l'instant T**, jamais périmée automatiquement — pas un abonnement à la dernière version du corpus. Un `lead` qui audite une attestation doit lire la colonne « Version » module par module, pas seulement la version globale en en-tête.
+
 ## Vérifier un JSON exporté
 
 Le champ `hash` est le SHA-256 hexadécimal de la sérialisation JSON de l'attestation **sans le champ `hash` lui-même**. Pour recalculer et comparer :

@@ -9,6 +9,7 @@ import Connexion from './components/Connexion.vue'
 import * as synchro from './services/synchro.js'
 import QuizFinal from './components/QuizFinal.vue'
 import Attestation from './components/Attestation.vue'
+import { versionActuelle } from './services/corpusVersion.js'
 import { modules } from './data/modules.js'
 import { profils } from './data/lectures.js'
 
@@ -82,7 +83,21 @@ function fusionner(distante) {
   const majLocale = Number(localStorage.getItem('parcours-acs-maj') || 0)
   for (const [module, entree] of Object.entries(distante)) {
     const distantPlusRecent = new Date(entree.maj).getTime() >= majLocale
-    if (!locale[module] || distantPlusRecent) locale[module] = entree.donnees
+    const existant = locale[module]
+    if (!existant) { locale[module] = entree.donnees; continue }
+
+    // Le reste de la fiche (objectifs, termine) suit l'horodatage le plus récent —
+    // mais le score de quiz suit le meilleur score, jamais une horloge mal calée
+    // ne doit faire régresser une réussite (Fatima, revue party mode).
+    const base = distantPlusRecent ? entree.donnees : existant
+    const autre = distantPlusRecent ? existant : entree.donnees
+    const fusionne = { ...base }
+    if ((autre?.quizScore ?? -1) > (fusionne.quizScore ?? -1)) {
+      fusionne.quizScore = autre.quizScore
+      fusionne.quizDate = autre.quizDate
+      fusionne.versionCorpus = autre.versionCorpus
+    }
+    locale[module] = fusionne
   }
 }
 
@@ -108,10 +123,11 @@ function basculerTermine(moduleId) {
   p.termine = !p.termine
 }
 
-function enregistrerQuiz(moduleId, score) {
+async function enregistrerQuiz(moduleId, score) {
   const p = progression.value[moduleId] || (progression.value[moduleId] = { objectifs: {}, termine: false })
   p.quizScore = score
   p.quizDate = new Date().toISOString()
+  p.versionCorpus = await versionActuelle() // gel de la version validée (cf. Attestation.vue pour la détection d'obsolescence)
 }
 
 function reinitialiser() {

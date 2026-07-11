@@ -2,7 +2,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { modules } from '../data/modules.js'
 import * as synchro from '../services/synchro.js'
-import { X, Download, Printer } from '../data/icones.js'
+import { versionActuelle } from '../services/corpusVersion.js'
+import { X, Download, Printer, AlertTriangle } from '../data/icones.js'
 
 const props = defineProps({
   progression: Object,
@@ -18,14 +19,7 @@ const enregistrementDistant = ref('') // '', 'en cours', 'ok', 'échec'
 const nomConnu = computed(() => synchro.connecte.value ? synchro.nomDev.value : nomSaisi.value.trim())
 
 onMounted(async () => {
-  try {
-    const rep = await fetch(import.meta.env.BASE_URL + 'docs/CHANGELOG.md')
-    const texte = await rep.text()
-    const m = texte.match(/^##\s*(v[\d.]+)/m)
-    versionCorpus.value = m ? m[1] : 'inconnue'
-  } catch {
-    versionCorpus.value = 'inconnue'
-  }
+  versionCorpus.value = await versionActuelle()
 })
 
 async function sha256Hex(texte) {
@@ -45,6 +39,8 @@ async function generer() {
       termine: !!props.progression?.[m.id]?.termine,
       quizScore: props.progression?.[m.id]?.quizScore ?? null,
       quizDate: props.progression?.[m.id]?.quizDate ?? null,
+      versionCorpusValidation: props.progression?.[m.id]?.versionCorpus ?? null,
+      obsolete: !!(props.progression?.[m.id]?.versionCorpus && props.progression[m.id].versionCorpus !== versionCorpus.value),
     })),
   }
   const hash = await sha256Hex(JSON.stringify(contenu))
@@ -101,13 +97,18 @@ function imprimer() {
             <dt>Version du corpus</dt><dd>{{ attestation.versionCorpus }}</dd>
             <dt>Modules complétés</dt><dd>{{ attestation.parcours.completes }}/{{ attestation.parcours.total }}</dd>
           </dl>
+          <p v-if="attestation.modules.some(m => m.obsolete)" class="alerte-obsolete">
+            <AlertTriangle :size="14" class="inline-ico" />
+            Certains modules ont été validés sur une version antérieure du corpus (colonne « Version »). L'attestation reste une photo à l'instant T — elle ne garantit pas la conformité aux mises à jour ultérieures de ces modules.
+          </p>
           <table>
-            <thead><tr><th>Module</th><th>Score quiz</th><th>Date</th></tr></thead>
+            <thead><tr><th>Module</th><th>Score quiz</th><th>Date</th><th>Version</th></tr></thead>
             <tbody>
-              <tr v-for="m in attestation.modules" :key="m.id">
+              <tr v-for="m in attestation.modules" :key="m.id" :class="{ obsolete: m.obsolete }">
                 <td>{{ m.titre }}</td>
                 <td>{{ m.quizScore !== null ? m.quizScore + ' %' : '—' }}</td>
                 <td>{{ m.quizDate ? m.quizDate.slice(0, 10) : '—' }}</td>
+                <td>{{ m.versionCorpusValidation ?? '—' }}<span v-if="m.obsolete"> ⚠️</span></td>
               </tr>
             </tbody>
           </table>
@@ -155,6 +156,9 @@ dd { font-weight: 600; color: var(--texte-plein); }
 table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--bordure); }
 .hash { margin-top: 12px; font-size: 12px; word-break: break-all; color: var(--muted); }
+.alerte-obsolete { background: #fbeeb1; color: #121c42; border-radius: 4px; padding: 10px 14px; font-size: 12.5px; margin: 10px 0; }
+tr.obsolete td { color: var(--accent-orange); }
+.inline-ico { vertical-align: -2px; }
 .hash code { background: var(--ligne-chapitre); padding: 2px 6px; border-radius: 4px; }
 .statut { font-size: 13px; margin-bottom: 10px; }
 .statut.ok { color: var(--primaire); }
