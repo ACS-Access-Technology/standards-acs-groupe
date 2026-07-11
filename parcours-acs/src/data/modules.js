@@ -4,7 +4,7 @@
 export const modules = [
   {
     id: 'accueil', doc: 'README.md', titre: 'Le standard ACS', icone: 'Landmark', couleur: '#1b2a9e', x: 8, y: 86,
-    etape: 'Départ', prerequis: [],
+    etape: 'Départ', prerequis: [], essentiel: true,
     resume: "Pourquoi ce corpus existe, les 7 invariants non négociables, la convention [MUST]/[SHOULD] et le parcours de lecture.",
     objectifs: [
       'Connaître les 7 invariants non négociables',
@@ -14,7 +14,7 @@ export const modules = [
   },
   {
     id: 'onboarding', doc: '01-onboarding-developpeur.md', titre: 'Onboarding', icone: 'Rocket', couleur: '#f28c1f', x: 20, y: 74,
-    etape: 'Départ', prerequis: ['accueil'],
+    etape: 'Départ', prerequis: ['accueil'], essentiel: true,
     resume: "Accès, MFA, environnement, et les 6 interdictions absolues à connaître par cœur avant la première ligne de code.",
     objectifs: [
       'Réciter les 6 interdictions absolues',
@@ -24,7 +24,7 @@ export const modules = [
   },
   {
     id: 'code', doc: '02-standards-de-code.md', titre: 'Standards de code', icone: 'Braces', couleur: '#1b2a9e', x: 33, y: 64,
-    etape: 'Socle', prerequis: ['onboarding'],
+    etape: 'Socle', prerequis: ['onboarding'], essentiel: true,
     resume: "Formatage, typage strict, analyse statique max — plus les basiques universels : dates UTC, monnaie sans flottant, idempotence, code IA.",
     objectifs: [
       'Configurer formateur + analyse statique au niveau max',
@@ -34,7 +34,7 @@ export const modules = [
   },
   {
     id: 'git', doc: '03-workflow-git-revues.md', titre: 'Git & revues', icone: 'GitBranch', couleur: '#e8262d', x: 46, y: 72,
-    etape: 'Socle', prerequis: ['code'],
+    etape: 'Socle', prerequis: ['code'], essentiel: true,
     resume: "Trunk-based, Conventional Commits, PR < 400 lignes, protection de main, SemVer, et la procédure de fuite de secret.",
     objectifs: [
       'Livrer une PR conforme (un sujet, CI verte, revue)',

@@ -1,0 +1,7 @@
+# ADR-001 — PocketBase pour la persistance du parcours
+
+- **Contexte** : la progression (localStorage) est perdue au changement de machine et invisible pour le lead ; il faut une persistance centralisée pour la progression, les futurs quiz et les attestations d'onboarding. Ces données sont nominatives (données personnelles — doc 15 du corpus applicable).
+- **Décision** : **PocketBase** auto-hébergé sur l'infrastructure interne ACS (un binaire Go, SQLite embarqué, auth intégrée, API REST + temps réel).
+- **Alternatives écartées** : **Firebase** — service propriétaire sans variante auto-hébergeable : échoue aux critères d'acceptation d'outil (09 §6 : souveraineté, plan de sortie) et aurait exigé une dérogation ; **Supabase** — conforme mais surdimensionné (Postgres + services multiples à exploiter) pour un outil interne de cette taille ; **rester sans backend** — n'adresse ni la vue lead ni la durabilité des attestations.
+- **Conséquences** : un binaire à héberger/sauvegarder (règle 3-2-1 applicable), licence MIT, plan de sortie trivial (export SQLite + API standard) ; auth des devs à brancher (comptes internes) ; classification/rétention des données de progression à déclarer ; le mode hors-ligne PWA garde localStorage comme cache local avec synchronisation idempotente vers PocketBase à la reconnexion (pattern doc 08 du corpus).
+- **Statut / date / approbateur** : acceptée / 10/07/2026 / Vincent Férié EKISSI (Responsable IT)

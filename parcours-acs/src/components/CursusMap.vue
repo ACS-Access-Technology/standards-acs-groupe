@@ -7,6 +7,7 @@ const props = defineProps({
   modules: Array,
   progression: Object,
   estDebloque: Function,
+  actif: { type: String, default: null },
 })
 const emit = defineEmits(['ouvrir'])
 
@@ -18,6 +19,15 @@ function coord(id) {
 const suivantId = () => {
   const m = props.modules.find(x => !props.progression[x.id]?.termine && props.estDebloque(x))
   return m ? m.id : null
+}
+
+// Le libellé reflète l'état de progression, pas une formule motivationnelle
+function libelleSuivant() {
+  const faits = props.modules.filter(m => props.progression[m.id]?.termine).length
+  const restants = props.modules.length - faits
+  if (faits === 0) return 'Commence ici'
+  if (restants === 1) return 'Dernier module'
+  return `Suivant — ${faits}/${props.modules.length} faits`
 }
 
 function etat(m) {
@@ -56,9 +66,9 @@ function clicNoeud(m) {
   const el = carte.value
   const W = el.clientWidth, H = el.clientHeight
   const xpx = (m.x / 100) * W, ypx = (m.y / 100) * H
-  const largeurPanneau = W > 640 ? Math.min(480, W * .5) : 0
-  const cibleX = (W - largeurPanneau) / 2
-  const cibleY = H * 0.45
+  // Le nœud cliqué devient l'en-tête de la fiche : en haut de la colonne principale
+  const cibleX = W > 980 ? W * 0.36 : W / 2
+  const cibleY = 165
   const k2 = 1.5
   animateTo(k2, cibleX - k2 * xpx, cibleY - k2 * ypx)
   emit('ouvrir', m)
@@ -107,7 +117,7 @@ defineExpose({ recentrer })
     @wheel="surWheel"
   >
     <div class="monde" :style="{ transform: 'translate(' + tx + 'px,' + ty + 'px) scale(' + k + ')' }">
-      <svg class="fils" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <svg class="fils" :class="{ estompe: !!actif }" viewBox="0 0 100 100" preserveAspectRatio="none">
         <line
           v-for="([de, vers], i) in liens" :key="i"
           :x1="coord(de).x" :y1="coord(de).y"
@@ -118,11 +128,11 @@ defineExpose({ recentrer })
 
       <button
         v-for="m in modules" :key="m.id"
-        class="noeud" :class="[etat(m), { suivant: m.id === suivantId() }]"
+        class="noeud" :class="[etat(m), { suivant: m.id === suivantId() && !actif, estompe: actif && m.id !== actif, focus: m.id === actif }]"
         :style="{ left: m.x + '%', top: m.y + '%' }"
         @click="clicNoeud(m)"
       >
-        <span v-if="m.id === suivantId()" class="badge-suivant">Commence ici</span>
+        <span v-if="m.id === suivantId()" class="badge-suivant">{{ libelleSuivant() }}</span>
         <span class="pastille">
           <svg class="socle" width="40" height="27" viewBox="0 0 40 27" aria-hidden="true">
             <ellipse cx="20" cy="13.5" rx="15" ry="8.5" />
@@ -134,6 +144,7 @@ defineExpose({ recentrer })
         </span>
         <span class="libelle">{{ m.titre }}</span>
         <span class="etape">{{ m.etape }}</span>
+        <span v-if="m.essentiel" class="badge-essentiel" title="Socle — avant ta première PR">Essentiel</span>
       </button>
     </div>
 
@@ -175,7 +186,13 @@ defineExpose({ recentrer })
   position: absolute; transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center;
   background: none; border: none; cursor: pointer; font-family: inherit;
+  transition: opacity .35s ease;
 }
+/* Fiche ouverte : les autres nœuds s'effacent, le nœud actif reste net et sert de repère */
+.noeud.estompe { opacity: .08; pointer-events: none; }
+.noeud.focus .libelle { color: var(--primaire); }
+.fils { transition: opacity .35s ease; }
+.fils.estompe { opacity: .12; }
 .pastille { position: relative; width: 48px; height: 62px; }
 .socle { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); overflow: visible; }
 .socle ellipse { fill: var(--card); stroke: var(--edge); stroke-width: 7; }
@@ -190,13 +207,23 @@ defineExpose({ recentrer })
 .icone :deep(svg) { filter: drop-shadow(0 1px 1px rgba(18, 28, 66, .18)); }
 .libelle { font-size: 16px; font-weight: 700; color: var(--texte-plein); margin-top: 6px; }
 .etape { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.badge-suivant {
-  position: absolute; top: -26px; left: 50%; transform: translateX(-50%);
-  background: var(--primaire); color: var(--sur-primaire);
-  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 8px;
-  white-space: nowrap; animation: pulse 1.6s ease-in-out infinite;
+.badge-essentiel {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--accent-rouge); margin-top: 2px;
 }
-@keyframes pulse { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-4px); } }
+/* Tooltip avec flèche, qui flotte doucement au-dessus du nœud */
+.badge-suivant {
+  position: absolute; top: -34px; left: 50%; transform: translateX(-50%);
+  background: var(--card); color: var(--texte-plein);
+  font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px;
+  box-shadow: var(--ring), 0 2px 8px rgba(18, 28, 66, .12);
+  white-space: nowrap; animation: flotte 1.6s ease-in-out infinite;
+}
+.badge-suivant::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: var(--card);
+}
+@keyframes flotte { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-5px); } }
 .suivant .socle ellipse { stroke: var(--primaire); }
 .verrouille { opacity: .45; }
 .verrouille .icone { filter: grayscale(1); opacity: .8; }

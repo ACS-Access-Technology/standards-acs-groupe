@@ -1,8 +1,13 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 import CursusMap from './components/CursusMap.vue'
+import CursusListe from './components/CursusListe.vue'
 import ModulePanel from './components/ModulePanel.vue'
 import DocViewer from './components/DocViewer.vue'
+import Lexique from './components/Lexique.vue'
+import Connexion from './components/Connexion.vue'
+import * as synchro from './services/synchro.js'
+import Quiz from './components/Quiz.vue'
 import { modules } from './data/modules.js'
 import { profils } from './data/lectures.js'
 
@@ -15,7 +20,20 @@ function charger() {
 const progression = ref(charger())
 const moduleActif = ref(null)
 const carteRef = ref(null)
+const mq = window.matchMedia('(max-width: 768px)')
+const estMobile = ref(mq.matches)
+const surMq = e => { estMobile.value = e.matches }
+mq.addEventListener('change', surMq)
+onUnmounted(() => mq.removeEventListener('change', surMq))
 const docActif = ref(null)
+const lexiqueOuvert = ref(false)
+const quizOuvert = ref(false)
+const quizReussi = ref(localStorage.getItem('parcours-acs-quiz-reussi') === '1')
+
+function marquerQuizReussi() {
+  quizReussi.value = true
+  localStorage.setItem('parcours-acs-quiz-reussi', '1')
+}
 
 function fermerFiche() {
   moduleActif.value = null
@@ -23,16 +41,48 @@ function fermerFiche() {
 }
 const premiereVisite = ref(!localStorage.getItem('parcours-acs-profil'))
 const profil = ref(localStorage.getItem('parcours-acs-profil') || 'junior')
+const bienvenueRef = ref(null)
 
 function choisirProfil(id) {
   profil.value = id
   premiereVisite.value = false
 }
 watch(profil, v => localStorage.setItem('parcours-acs-profil', v))
+
+watch(premiereVisite, async ouverte => {
+  if (!ouverte) return
+  await nextTick()
+  bienvenueRef.value?.querySelector('button')?.focus()
+}, { immediate: true })
+
+function pieger(e) {
+  if (e.key !== 'Tab') return
+  const focusables = bienvenueRef.value?.querySelectorAll('button')
+  if (!focusables?.length) return
+  const premier = focusables[0]
+  const dernier = focusables[focusables.length - 1]
+  if (e.shiftKey && document.activeElement === premier) { e.preventDefault(); dernier.focus() }
+  else if (!e.shiftKey && document.activeElement === dernier) { e.preventDefault(); premier.focus() }
+}
 const logoOk = ref(true)
 const logoUrl = import.meta.env.BASE_URL + 'logo-acs.png'
 
-watch(progression, v => localStorage.setItem(STORAGE_KEY, JSON.stringify(v)), { deep: true })
+watch(progression, v => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(v))
+  synchro.planifier(v)   // pousse vers PocketBase si configuré (file locale sinon)
+}, { deep: true })
+
+const connexionOuverte = ref(false)
+
+// Fusion au login : par module, l'horodatage le plus récent gagne (simplification documentée)
+function fusionner(distante) {
+  const locale = progression.value
+  const majLocale = Number(localStorage.getItem('parcours-acs-maj') || 0)
+  for (const [module, entree] of Object.entries(distante)) {
+    const distantPlusRecent = new Date(entree.maj).getTime() >= majLocale
+    if (!locale[module] || distantPlusRecent) locale[module] = entree.donnees
+  }
+}
 
 const stats = computed(() => {
   const termines = modules.filter(m => progression.value[m.id]?.termine).length
@@ -57,7 +107,11 @@ function basculerTermine(moduleId) {
 }
 
 function reinitialiser() {
-  if (confirm('Réinitialiser toute la progression ?')) progression.value = {}
+  if (confirm('Réinitialiser toute la progression ?')) {
+    progression.value = {}
+    quizReussi.value = false
+    localStorage.removeItem('parcours-acs-quiz-reussi')
+  }
 }
 </script>
 
@@ -78,6 +132,16 @@ function reinitialiser() {
           <p>Suis le chemin, ouvre chaque module, coche les objectifs. Un module se débloque quand ses prérequis sont terminés.</p>
         </div>
       </div>
+      <button class="btn-lexique" @click="lexiqueOuvert = true">Lexique</button>
+      <button
+        v-if="synchro.actif"
+        class="btn-lexique btn-sync"
+        :title="synchro.enAttente.value ? synchro.enAttente.value + ' modification(s) en attente de synchronisation' : 'Synchronisé'"
+        @click="synchro.connecte.value ? synchro.deconnecter() : connexionOuverte = true"
+      >
+        <span class="point" :class="{ ok: synchro.connecte.value && !synchro.enAttente.value, attente: synchro.enAttente.value }"></span>
+        {{ synchro.connecte.value ? synchro.nomDev.value : 'Se connecter' }}
+      </button>
       <div class="profil-choix" title="Le niveau adapte l'explication, jamais la règle">
         <button
           v-for="pr in profils" :key="pr.id"
@@ -88,12 +152,27 @@ function reinitialiser() {
       <div class="score">
         <div class="barre"><div class="remplissage" :style="{ width: stats.pct + '%' }"></div></div>
         <span>{{ stats.termines }}/{{ stats.total }} — {{ stats.pct }} %</span>
+        <button
+          v-if="stats.pct === 100 && !quizReussi"
+          class="valider-connaissances"
+          @click="quizOuvert = true"
+        >Valider mes connaissances</button>
+        <span v-else-if="quizReussi" class="quiz-ok">Connaissances validées ✓</span>
         <button class="reset" @click="reinitialiser">Réinitialiser</button>
       </div>
     </header>
 
+    <CursusListe
+      v-if="estMobile"
+      :modules="modules"
+      :progression="progression"
+      :est-debloque="estDebloque"
+      @ouvrir="ouvrir"
+    />
     <CursusMap
+      v-else
       ref="carteRef"
+      :actif="moduleActif ? moduleActif.id : null"
       :modules="modules"
       :progression="progression"
       :est-debloque="estDebloque"
@@ -110,13 +189,25 @@ function reinitialiser() {
       @objectif="i => basculerObjectif(moduleActif.id, i)"
       @termine="basculerTermine(moduleActif.id)"
       @lire="d => docActif = d"
+      @lexique="lexiqueOuvert = true"
     />
 
     <DocViewer v-if="docActif" :doc="docActif" @fermer="docActif = null" />
+    <Lexique v-if="lexiqueOuvert" @fermer="lexiqueOuvert = false" />
+    <Connexion v-if="connexionOuverte" @fermer="connexionOuverte = false" @fusion="fusionner" />
+    <Quiz v-if="quizOuvert" @fermer="quizOuvert = false" @reussi="marquerQuizReussi" />
 
     <div v-if="premiereVisite" class="bienvenue-voile">
-      <div class="bienvenue">
-        <h2>Bienvenue dans le parcours ACS 👋</h2>
+      <div
+        class="bienvenue"
+        ref="bienvenueRef"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bienvenue-titre"
+        @keydown="pieger"
+      >
+        <h2 id="bienvenue-titre">Bienvenue dans le parcours ACS 👋</h2>
+        <p class="bienvenue-enjeu">{{ modules.length }} modules · obligatoire avant ta première PR</p>
         <p>Chaque point de la carte est un module des standards de développement. Tu ouvres un module, tu lis, tu coches ses objectifs — et le suivant se débloque. Suis le badge « Commence ici ».</p>
         <p><strong>Choisis ton profil</strong> : il adapte seulement la façon d'expliquer (plus d'exemples pour un junior, la règle sèche pour un senior). Les règles et les objectifs sont les mêmes pour tout le monde — et tu peux changer à tout moment en haut de l'écran.</p>
         <div class="choix">
@@ -182,6 +273,15 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .logo-texte .a { color: #e8262d; }
 .logo-texte .c { color: #1b2a9e; }
 .logo-texte .s { color: #f28c1f; }
+.btn-lexique {
+  border: none; background: var(--fond); box-shadow: var(--ring); border-radius: 8px;
+  padding: 8px 14px; font-size: 13px; font-family: inherit; color: var(--texte); cursor: pointer;
+}
+.btn-lexique:hover { color: var(--primaire); }
+.btn-sync { display: flex; align-items: center; gap: 8px; }
+.point { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.point.ok { background: #1f7a4d; }
+.point.attente { background: var(--accent-orange); }
 .profil-choix {
   display: flex; background: var(--fond); border-radius: 8px; padding: 3px; box-shadow: var(--ring);
 }
@@ -191,7 +291,8 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 }
 .profil-choix button.actif { background: var(--primaire); color: var(--sur-primaire); font-weight: 500; }
 .bienvenue-voile {
-  position: fixed; inset: 0; z-index: 40; background: rgba(18, 28, 66, .45);
+  position: fixed; inset: 0; z-index: 40; background: rgba(18, 28, 66, .25);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center; padding: 16px;
 }
 .bienvenue {
@@ -199,6 +300,7 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
   padding: 32px; display: flex; flex-direction: column; gap: 14px;
 }
 .bienvenue h2 { font-size: 22px; font-weight: 700; color: var(--texte-plein); }
+.bienvenue-enjeu { font-size: 13px; font-weight: 600; color: var(--primaire); text-transform: uppercase; letter-spacing: .04em; }
 .bienvenue p { font-size: 15px; line-height: 1.6; }
 .choix { display: flex; gap: 10px; margin-top: 6px; }
 .choix button {
@@ -207,6 +309,15 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 }
 .choix button:hover { opacity: .9; }
 .score { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+@media (max-width: 768px) {
+  header { padding: 12px 16px; gap: 12px; }
+  header p { display: none; }
+  .logo-acs { height: 34px; }
+  h1 { font-size: 16px; }
+  h1 span { display: block; margin-left: 0; font-size: 12px; }
+  .barre { width: 90px; }
+  .profil-choix button { padding: 5px 10px; font-size: 12px; }
+}
 .barre { width: 180px; height: 8px; background: var(--bordure); border-radius: 8px; overflow: hidden; }
 .remplissage { height: 100%; background: linear-gradient(90deg, #e8262d, #f28c1f, #1b2a9e); transition: width .3s; }
 .reset {
@@ -214,4 +325,9 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
   padding: 6px 12px; font-size: 12px; font-family: inherit; border-radius: 8px; cursor: pointer;
 }
 .reset:hover { color: var(--accent-rouge); }
+.valider-connaissances {
+  border: none; background: var(--primaire); color: var(--sur-primaire); border-radius: 8px;
+  padding: 6px 12px; font-size: 12px; font-family: inherit; cursor: pointer; font-weight: 500;
+}
+.quiz-ok { font-size: 12px; color: var(--primaire); font-weight: 600; }
 </style>

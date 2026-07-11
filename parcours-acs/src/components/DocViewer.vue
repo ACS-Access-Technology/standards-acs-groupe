@@ -71,4 +71,8 @@ header code { font-size: 13px; color: var(--muted); background: var(--ligne-chap
 .contenu :deep(th) { background: var(--ligne-chapitre); font-weight: 700; color: var(--texte-plein); }
 .contenu :deep(a) { color: var(--primaire); }
 .contenu :deep(hr) { border: none; border-top: 1px solid var(--bordure); margin: 20px 0; }
+@media (max-width: 768px) {
+  .voile-doc { padding: 12px 8px; }
+  .contenu { padding: 18px 16px 32px; font-size: 14px; }
+}
 </style>

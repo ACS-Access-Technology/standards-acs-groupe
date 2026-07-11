@@ -12,7 +12,7 @@ const props = defineProps({
 })
 
 const lecture = computed(() => lectures[props.module.id]?.[props.profil] || null)
-const emit = defineEmits(['fermer', 'objectif', 'termine', 'lire'])
+const emit = defineEmits(['fermer', 'objectif', 'termine', 'lire', 'lexique'])
 
 const prerequisTitres = computed(() =>
   props.module.prerequis.map(p => modules.find(m => m.id === p)?.titre)
@@ -39,9 +39,11 @@ const toutCoche = computed(() => objectifsCoches.value === props.module.objectif
       <div class="principale">
         <button class="fermer" @click="emit('fermer')"><X :size="18" /></button>
 
-        <div class="identite">
-          <span class="logo" :style="{ background: module.couleur }">
-            <component :is="icones[module.icone]" :size="34" :stroke-width="1.8" color="#fff" />
+        <div class="espace-noeud" aria-hidden="true"></div>
+
+        <div class="identite-mobile">
+          <span class="tuile" :style="{ background: module.couleur }">
+            <component :is="icones[module.icone]" :size="26" :stroke-width="1.8" color="#fff" />
           </span>
           <h1>{{ module.titre }}</h1>
         </div>
@@ -83,6 +85,7 @@ const toutCoche = computed(() => objectifsCoches.value === props.module.objectif
               <li><a href="#" @click.prevent="emit('lire', module.doc)">Le document complet</a></li>
               <li><a href="#" @click.prevent="emit('lire', 'README.md')">Le README du corpus</a></li>
               <li><a href="#" @click.prevent="emit('lire', '10-gabarits.md')">Les gabarits</a></li>
+              <li><a href="#" @click.prevent="emit('lexique')">Le lexique (un mot t'échappe ?)</a></li>
             </ul>
           </div>
         </div>
@@ -133,11 +136,16 @@ const toutCoche = computed(() => objectifsCoches.value === props.module.objectif
 /* La fiche recouvre le canevas, qui reste visible très estompé derrière */
 .voile {
   position: fixed; inset: 0; z-index: 10;
-  background: color-mix(in srgb, var(--fond) 60%, transparent);
+  background: color-mix(in srgb, var(--fond) 25%, transparent);
+}
+@media (max-width: 768px) {
+  .voile { background: var(--fond); } /* pas de canevas derrière sur mobile */
+  .fiche { padding: 24px 16px 60px; gap: 20px; }
+  .fermer { top: -6px; }
   overflow-y: auto;
 }
 .fiche {
-  max-width: 1350px; margin: 0 auto; padding: 120px 32px 80px;
+  max-width: 1350px; margin: 0 auto; padding: 110px 32px 110px;
   display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 48px;
   transition: all .6s ease;
   animation: apparait .3s ease;
@@ -146,7 +154,15 @@ const toutCoche = computed(() => objectifsCoches.value === props.module.objectif
 @media (max-width: 980px) { .fiche { grid-template-columns: 1fr; gap: 28px; } }
 
 /* --- Colonne principale --- */
-.principale { display: flex; flex-direction: column; gap: 16px; position: relative; }
+.principale { display: flex; flex-direction: column; gap: 18px; position: relative; }
+.espace-noeud { height: 185px; } /* le nœud réel, resté net sur le canevas, occupe cet espace */
+.identite-mobile { display: none; }
+h1 { font-size: 22px; font-weight: 700; color: var(--primaire); }
+@media (max-width: 768px) {
+  .espace-noeud { display: none; }
+  .identite-mobile { display: flex; align-items: center; gap: 12px; padding-top: 8px; }
+  .tuile { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+}
 .fermer {
   position: absolute; top: 0; right: 0; width: 36px; height: 36px;
   border: none; background: none; color: var(--texte-plein); cursor: pointer;
