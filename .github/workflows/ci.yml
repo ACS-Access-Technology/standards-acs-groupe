@@ -33,11 +33,11 @@ jobs:
         working-directory: parcours-acs
         run: npm run build
 
-      - name: Doc générée à jour (échoue si gen-lexique/sync-docs n'a pas été commité)
+      - name: Doc générée à jour (échoue si gen-lexique/sync-docs/gen-bareme n'a pas été commité)
         run: |
-          if ! git diff --quiet -- parcours-acs/LEXIQUE.md parcours-acs/public/docs; then
-            echo "::error::LEXIQUE.md ou public/docs/ n'est pas à jour — lance npm run build en local et commite le résultat."
-            git diff --stat -- parcours-acs/LEXIQUE.md parcours-acs/public/docs
+          if ! git diff --quiet -- parcours-acs/LEXIQUE.md parcours-acs/public/docs parcours-acs/pocketbase/pb_hooks/bareme.json; then
+            echo "::error::LEXIQUE.md, public/docs/ ou pb_hooks/bareme.json n'est pas à jour — lance npm run build en local et commite le résultat."
+            git diff --stat -- parcours-acs/LEXIQUE.md parcours-acs/public/docs parcours-acs/pocketbase/pb_hooks/bareme.json
             exit 1
           fi
 
