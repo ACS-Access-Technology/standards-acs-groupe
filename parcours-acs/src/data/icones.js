@@ -4,6 +4,7 @@ import {
   FlaskConical, ShieldCheck, Database, Workflow, Gauge, Map, RefreshCw,
   SearchCheck, AlertTriangle, Route, Bot,
   X, Lock, BookOpen, CheckCircle2, Download, Printer,
+  Lightbulb, Locate, ChevronRight, RotateCcw,
 } from 'lucide-vue-next'
 
 export const icones = {
@@ -12,4 +13,4 @@ export const icones = {
   SearchCheck, AlertTriangle, Route, Bot,
 }
 
-export { X, Lock, BookOpen, CheckCircle2, Download, Printer, AlertTriangle }
+export { X, Lock, BookOpen, CheckCircle2, Download, Printer, AlertTriangle, Lightbulb, Locate, ChevronRight, RotateCcw }

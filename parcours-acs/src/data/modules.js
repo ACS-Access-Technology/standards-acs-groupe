@@ -3,7 +3,7 @@
 
 export const modules = [
   {
-    id: 'accueil', doc: 'README.md', titre: 'Le standard ACS', icone: 'Landmark', couleur: '#1b2a9e', x: 8, y: 86,
+    id: 'accueil', doc: 'README.md', titre: 'Le standard ACS', icone: 'Landmark', couleur: '#1b2a9e', x: 7, y: 84,
     etape: 'Départ', prerequis: [], essentiel: true,
     resume: "Pourquoi ce corpus existe, les 7 invariants non négociables, la convention [MUST]/[SHOULD] et le parcours de lecture.",
     objectifs: [
@@ -13,7 +13,7 @@ export const modules = [
     ],
   },
   {
-    id: 'onboarding', doc: '01-onboarding-developpeur.md', titre: 'Onboarding', icone: 'Rocket', couleur: '#f28c1f', x: 20, y: 74,
+    id: 'onboarding', doc: '01-onboarding-developpeur.md', titre: 'Onboarding', icone: 'Rocket', couleur: '#f28c1f', x: 16, y: 74,
     etape: 'Départ', prerequis: ['accueil'], essentiel: true,
     resume: "Accès, MFA, environnement, et les 6 interdictions absolues à connaître par cœur avant la première ligne de code.",
     objectifs: [
@@ -23,7 +23,7 @@ export const modules = [
     ],
   },
   {
-    id: 'code', doc: '02-standards-de-code.md', titre: 'Standards de code', icone: 'Braces', couleur: '#1b2a9e', x: 33, y: 64,
+    id: 'code', doc: '02-standards-de-code.md', titre: 'Standards de code', icone: 'Braces', couleur: '#1b2a9e', x: 26, y: 82,
     etape: 'Socle', prerequis: ['onboarding'], essentiel: true,
     resume: "Formatage, typage strict, analyse statique max — plus les basiques universels : dates UTC, monnaie sans flottant, idempotence, code IA.",
     objectifs: [
@@ -33,7 +33,7 @@ export const modules = [
     ],
   },
   {
-    id: 'git', doc: '03-workflow-git-revues.md', titre: 'Git & revues', icone: 'GitBranch', couleur: '#e8262d', x: 46, y: 72,
+    id: 'git', doc: '03-workflow-git-revues.md', titre: 'Git & revues', icone: 'GitBranch', couleur: '#e8262d', x: 36, y: 70,
     etape: 'Socle', prerequis: ['code'], essentiel: true,
     resume: "Trunk-based, Conventional Commits, PR < 400 lignes, protection de main, SemVer, et la procédure de fuite de secret.",
     objectifs: [
@@ -43,7 +43,7 @@ export const modules = [
     ],
   },
   {
-    id: 'toolchain', doc: '09-toolchain.md', titre: 'Toolchain', icone: 'Wrench', couleur: '#f28c1f', x: 33, y: 88,
+    id: 'toolchain', doc: '09-toolchain.md', titre: 'Toolchain', icone: 'Wrench', couleur: '#f28c1f', x: 36, y: 87,
     etape: 'Référence', prerequis: ['code'],
     resume: "La table d'équivalences par écosystème : chaque fonction du standard déclinée dans ta stack, consignée dans /docs/toolchain.md.",
     objectifs: [
@@ -53,7 +53,7 @@ export const modules = [
     ],
   },
   {
-    id: 'archi', doc: '04-regles-architecture.md', titre: 'Architecture', icone: 'Layers', couleur: '#1b2a9e', x: 58, y: 62,
+    id: 'archi', doc: '04-regles-architecture.md', titre: 'Architecture', icone: 'Layers', couleur: '#1b2a9e', x: 48, y: 62,
     etape: 'Construction', prerequis: ['git'],
     resume: "Les règles bloquantes vérifiées en CI : couches, outbox, migrations expand/contract, audit write-ahead, résilience, cache, corrélation.",
     objectifs: [
@@ -63,7 +63,7 @@ export const modules = [
     ],
   },
   {
-    id: 'api', doc: '11-conception-api.md', titre: 'Conception d’API', icone: 'Plug', couleur: '#f28c1f', x: 71, y: 70,
+    id: 'api', doc: '11-conception-api.md', titre: 'Conception d’API', icone: 'Plug', couleur: '#f28c1f', x: 60, y: 52,
     etape: 'Construction', prerequis: ['archi'],
     resume: "Erreurs RFC 9457, pagination par curseur, clés d'idempotence, rate limiting, webhooks signés, dépréciation outillée.",
     objectifs: [
@@ -73,7 +73,7 @@ export const modules = [
     ],
   },
   {
-    id: 'gabarits', doc: '10-gabarits.md', titre: 'Gabarits', icone: 'ClipboardList', couleur: '#1b2a9e', x: 58, y: 84,
+    id: 'gabarits', doc: '10-gabarits.md', titre: 'Gabarits', icone: 'ClipboardList', couleur: '#1b2a9e', x: 58, y: 72,
     etape: 'Référence', prerequis: ['archi'],
     resume: "ADR, runbook, postmortem, rapport d'anomalie, SECURITY.md, security.txt, toolchain — à adapter, jamais à copier tel quel.",
     objectifs: [
@@ -82,7 +82,7 @@ export const modules = [
     ],
   },
   {
-    id: 'tests', doc: '05-strategie-tests.md', titre: 'Tests', icone: 'FlaskConical', couleur: '#f28c1f', x: 62, y: 44,
+    id: 'tests', doc: '05-strategie-tests.md', titre: 'Tests', icone: 'FlaskConical', couleur: '#f28c1f', x: 46, y: 44,
     etape: 'Qualité', prerequis: ['archi'],
     resume: "La pyramide appliquée, critères d'entrée/sortie, gestion des anomalies, tests de contrat, budget de performance en CI.",
     objectifs: [
@@ -92,7 +92,7 @@ export const modules = [
     ],
   },
   {
-    id: 'securite', doc: '06-securite-developpeur.md', titre: 'Sécurité', icone: 'ShieldCheck', couleur: '#e8262d', x: 74, y: 50,
+    id: 'securite', doc: '06-securite-developpeur.md', titre: 'Sécurité', icone: 'ShieldCheck', couleur: '#e8262d', x: 58, y: 34,
     etape: 'Sécurité', prerequis: ['archi'],
     resume: "Revue sécurité bloquante, grille de revue, supply chain avec quarantaine, incidents S1/S2/S3, règles IA/MCP, mapping OWASP Top 10.",
     objectifs: [
@@ -102,7 +102,7 @@ export const modules = [
     ],
   },
   {
-    id: 'donnees', doc: '15-gouvernance-des-donnees.md', titre: 'Données', icone: 'Database', couleur: '#1b2a9e', x: 86, y: 58,
+    id: 'donnees', doc: '15-gouvernance-des-donnees.md', titre: 'Données', icone: 'Database', couleur: '#1b2a9e', x: 70, y: 42,
     etape: 'Gouvernance', prerequis: ['securite'],
     resume: "Classification (publique → sensible), finalités dans le schéma, rétentions en code, anonymisation testée, droits des personnes.",
     objectifs: [
@@ -112,7 +112,7 @@ export const modules = [
     ],
   },
   {
-    id: 'cicd', doc: '07-cicd-supply-chain.md', titre: 'CI/CD', icone: 'Workflow', couleur: '#f28c1f', x: 78, y: 32,
+    id: 'cicd', doc: '07-cicd-supply-chain.md', titre: 'CI/CD', icone: 'Workflow', couleur: '#f28c1f', x: 46, y: 26,
     etape: 'Livraison', prerequis: ['tests', 'securite'],
     resume: "Le pipeline 8 étapes bloquantes, IaC sans exception, SBOM, signatures, rollback testé, métriques DORA.",
     objectifs: [
@@ -122,7 +122,7 @@ export const modules = [
     ],
   },
   {
-    id: 'exploitation', doc: '08-exploitation-observabilite.md', titre: 'Exploitation', icone: 'Gauge', couleur: '#1b2a9e', x: 90, y: 24,
+    id: 'exploitation', doc: '08-exploitation-observabilite.md', titre: 'Exploitation', icone: 'Gauge', couleur: '#1b2a9e', x: 58, y: 14,
     etape: 'Exploitation', prerequis: ['cicd'],
     resume: "Supervision hors production, SLO et budget d'erreur, alertes avec runbooks, sauvegardes immuables, astreinte, matrice d'arbitrage.",
     objectifs: [
@@ -132,7 +132,7 @@ export const modules = [
     ],
   },
   {
-    id: 'projet', doc: '12-cycle-de-vie-projet.md', titre: 'Cycle projet', icone: 'Map', couleur: '#1b2a9e', x: 44, y: 30,
+    id: 'projet', doc: '12-cycle-de-vie-projet.md', titre: 'Cycle projet', icone: 'Map', couleur: '#1b2a9e', x: 24, y: 60,
     etape: 'Pilotage', prerequis: ['git'],
     resume: "Les portes J0→J(n+3), la Definition of Ready d'un ticket, les changements de périmètre, les registres qui protègent l'équipe.",
     objectifs: [
@@ -142,7 +142,7 @@ export const modules = [
     ],
   },
   {
-    id: 'mco', doc: '13-vie-du-produit-mco.md', titre: 'Vie du produit', icone: 'RefreshCw', couleur: '#f28c1f', x: 92, y: 42,
+    id: 'mco', doc: '13-vie-du-produit-mco.md', titre: 'Vie du produit', icone: 'RefreshCw', couleur: '#f28c1f', x: 70, y: 8,
     etape: 'Vie du produit', prerequis: ['exploitation'],
     resume: "SemVer, les trois circuits de changement en production, gestion EOL, SLA chiffrés, migration de données, réversibilité testée.",
     objectifs: [
@@ -152,7 +152,7 @@ export const modules = [
     ],
   },
   {
-    id: 'audit', doc: '14-auto-audit.md', titre: 'Auto-audit', icone: 'SearchCheck', couleur: '#e8262d', x: 66, y: 16,
+    id: 'audit', doc: '14-auto-audit.md', titre: 'Auto-audit', icone: 'SearchCheck', couleur: '#e8262d', x: 84, y: 22,
     etape: 'Contrôle continu', prerequis: ['securite', 'exploitation'],
     resume: "La checklist trimestrielle par preuve : accès, configuration, audit trail, sauvegardes, supply chain, dette. « Tu constates, tu ne supposes pas. »",
     objectifs: [
@@ -162,7 +162,7 @@ export const modules = [
     ],
   },
   {
-    id: 'risques', doc: '17-registre-risques-derogations.md', titre: 'Risques & dérogations', icone: 'AlertTriangle', couleur: '#e8262d', x: 50, y: 12,
+    id: 'risques', doc: '17-registre-risques-derogations.md', titre: 'Risques & dérogations', icone: 'AlertTriangle', couleur: '#e8262d', x: 92, y: 30,
     etape: 'Contrôle continu', prerequis: ['audit'],
     resume: "Le registre vivant : risques avec plan daté, dérogations avec ADR, contrôle compensatoire et date de résorption. Un risque sans plan daté est un vœu.",
     objectifs: [
@@ -172,7 +172,7 @@ export const modules = [
     ],
   },
   {
-    id: 'platform', doc: '18-platform-engineering.md', titre: 'Platform engineering', icone: 'Route', couleur: '#f28c1f', x: 66, y: 4,
+    id: 'platform', doc: '18-platform-engineering.md', titre: 'Platform engineering', icone: 'Route', couleur: '#f28c1f', x: 34, y: 18,
     etape: 'Industrialisation', prerequis: ['cicd'],
     resume: "Golden paths, templates pré-conformes, catalogue de services, conformité automatisée : le chemin conforme doit être le chemin le plus facile.",
     objectifs: [
@@ -182,7 +182,7 @@ export const modules = [
     ],
   },
   {
-    id: 'ia', doc: '19-gouvernance-ia-et-agents.md', titre: 'IA & agents', icone: 'Bot', couleur: '#1b2a9e', x: 94, y: 70,
+    id: 'ia', doc: '19-gouvernance-ia-et-agents.md', titre: 'IA & agents', icone: 'Bot', couleur: '#1b2a9e', x: 66, y: 22,
     etape: 'Gouvernance', prerequis: ['securite'],
     resume: "Assistants IA et agents MCP : usages permis, données interdites dans les prompts, confirmation humaine des écritures sensibles, anti tool-poisoning, audit intégral.",
     objectifs: [

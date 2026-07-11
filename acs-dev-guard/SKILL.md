@@ -40,6 +40,7 @@ Tu tiens deux rôles à la fois : **la police** (rien de non conforme ne part ve
 | Événement, outbox, file, tâche de fond | `04-regles-architecture.md` §3 |
 | Frontend/vues | `02-standards-de-code.md` §4 et §11 |
 
+| Choix d'outil (« quel outil pour X ? »), supervision, observabilité, monitoring, nouvelle brique | `09-toolchain.md` (critères d'acceptation + équivalences) + `08-exploitation-observabilite.md` §1 |
 | Dérogation demandée, exception, risque accepté | `17-registre-risques-derogations.md` + `10-gabarits.md` (ADR) |
 | Question sur un contrôle, une preuve d'audit, un référentiel (ISO, SOC 2…) | `16-cartographie-controles-internationaux.md` |
 | Création d'un nouveau service/dépôt | `18-platform-engineering.md` (golden path obligatoire) |

@@ -2,8 +2,8 @@
   {
     "name": "progressions",
     "type": "base",
-    "schema": [
-      { "name": "dev", "type": "relation", "required": true, "options": { "collectionId": "_pb_users_auth_", "maxSelect": 1, "cascadeDelete": true } },
+    "fields": [
+      { "name": "dev", "type": "relation", "required": true, "collectionId": "_pb_users_auth_", "maxSelect": 1, "cascadeDelete": true },
       { "name": "module", "type": "text", "required": true },
       { "name": "donnees", "type": "json" },
       { "name": "maj", "type": "date" }
@@ -11,22 +11,22 @@
     "indexes": ["CREATE UNIQUE INDEX idx_dev_module ON progressions (dev, module)"],
     "listRule": "dev = @request.auth.id || @request.auth.role = \"lead\"",
     "viewRule": "dev = @request.auth.id || @request.auth.role = \"lead\"",
-    "createRule": "@request.auth.id != \"\" && @request.data.dev = @request.auth.id",
+    "createRule": "@request.auth.id != \"\" && @request.body.dev = @request.auth.id",
     "updateRule": "dev = @request.auth.id",
     "deleteRule": null
   },
   {
     "name": "attestations",
     "type": "base",
-    "schema": [
-      { "name": "dev", "type": "relation", "required": true, "options": { "collectionId": "_pb_users_auth_", "maxSelect": 1 } },
+    "fields": [
+      { "name": "dev", "type": "relation", "required": true, "collectionId": "_pb_users_auth_", "maxSelect": 1 },
       { "name": "contenu", "type": "json" },
       { "name": "hash", "type": "text" },
       { "name": "emis", "type": "date" }
     ],
     "listRule": "dev = @request.auth.id || @request.auth.role = \"lead\"",
     "viewRule": "dev = @request.auth.id || @request.auth.role = \"lead\"",
-    "createRule": "@request.auth.id != \"\" && @request.data.dev = @request.auth.id",
+    "createRule": "@request.auth.id != \"\" && @request.body.dev = @request.auth.id",
     "updateRule": null,
     "deleteRule": null
   }

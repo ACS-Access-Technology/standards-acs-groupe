@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { modules as tousModules, liens } from '../data/modules.js'
-import { icones, CheckCircle2 } from '../data/icones.js'
+import { icones, CheckCircle2, Locate, RotateCcw } from '../data/icones.js'
 
 const props = defineProps({
   modules: Array,
@@ -9,7 +9,7 @@ const props = defineProps({
   estDebloque: Function,
   actif: { type: String, default: null },
 })
-const emit = defineEmits(['ouvrir'])
+const emit = defineEmits(['ouvrir', 'reinitialiser'])
 
 function coord(id) {
   const m = tousModules.find(x => x.id === id)
@@ -118,6 +118,16 @@ defineExpose({ recentrer })
   >
     <div class="monde" :style="{ transform: 'translate(' + tx + 'px,' + ty + 'px) scale(' + k + ')' }">
       <svg class="fils" :class="{ estompe: !!actif }" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="socle-haut" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style="stop-color: var(--socle-haut-1)" />
+          <stop offset="1" style="stop-color: var(--socle-haut-2)" />
+        </linearGradient>
+        <linearGradient id="socle-cote" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style="stop-color: var(--socle-cote-1)" />
+          <stop offset="1" style="stop-color: var(--socle-cote-2)" />
+        </linearGradient>
+      </defs>
         <line
           v-for="([de, vers], i) in liens" :key="i"
           :x1="coord(de).x" :y1="coord(de).y"
@@ -134,8 +144,15 @@ defineExpose({ recentrer })
       >
         <span v-if="m.id === suivantId()" class="badge-suivant">{{ libelleSuivant() }}</span>
         <span class="pastille">
-          <svg class="socle" width="40" height="27" viewBox="0 0 40 27" aria-hidden="true">
-            <ellipse cx="20" cy="13.5" rx="15" ry="8.5" />
+          <svg class="socle" width="46" height="32" viewBox="0 0 46 32" aria-hidden="true">
+            <!-- ombre au sol -->
+            <ellipse class="s-ombre" cx="23" cy="26.5" rx="17" ry="4" />
+            <!-- épaisseur de l'anneau (décalée vers le bas) -->
+            <ellipse class="s-cote" cx="23" cy="17.5" rx="15" ry="8.5" />
+            <!-- face supérieure de l'anneau -->
+            <ellipse class="s-haut" cx="23" cy="14" rx="15" ry="8.5" />
+            <!-- reflet -->
+            <ellipse class="s-reflet" cx="23" cy="13.2" rx="15" ry="8.5" />
           </svg>
           <span class="icone">
             <CheckCircle2 v-if="progression[m.id]?.termine" :size="36" :stroke-width="2" color="var(--primaire)" />
@@ -148,7 +165,10 @@ defineExpose({ recentrer })
       </button>
     </div>
 
-    <button class="recentrer" title="Recentrer la vue" @click.stop="recentrer">⌖</button>
+    <div class="controles">
+      <button class="controle" title="Recentrer la vue" @click.stop="recentrer"><Locate :size="17" /></button>
+      <button class="controle" title="Réinitialiser la progression" @click.stop="emit('reinitialiser')"><RotateCcw :size="16" /></button>
+    </div>
   </div>
 </template>
 
@@ -193,12 +213,18 @@ defineExpose({ recentrer })
 .noeud.focus .libelle { color: var(--primaire); }
 .fils { transition: opacity .35s ease; }
 .fils.estompe { opacity: .12; }
-.pastille { position: relative; width: 48px; height: 62px; }
+.pastille { position: relative; width: 48px; height: 66px; }
 .socle { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); overflow: visible; }
-.socle ellipse { fill: var(--card); stroke: var(--edge); stroke-width: 7; }
-.termine .socle ellipse { stroke: var(--primaire); }
+/* Anneau 3D : centre troué (la grille se voit au travers), épaisseur et ombre au sol */
+.s-ombre { fill: var(--socle-ombre); }
+.s-cote { fill: none; stroke: url(#socle-cote); stroke-width: 7; }
+.s-haut { fill: none; stroke: url(#socle-haut); stroke-width: 7; }
+.s-reflet { fill: none; stroke: rgba(255, 255, 255, .5); stroke-width: 1.4; }
+.termine .s-haut { stroke: var(--primaire); opacity: .85; }
+.termine .s-reflet { stroke: rgba(255, 255, 255, .35); }
+.suivant .s-haut { stroke: url(#socle-haut); }
 .icone {
-  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+  position: absolute; left: 50%; bottom: 15px; transform: translateX(-50%);
   width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
   /* lift au survol : 0.3s, courbe standard Tailwind */
   transition: all .3s cubic-bezier(.4, 0, .2, 1);
@@ -228,10 +254,12 @@ defineExpose({ recentrer })
 .verrouille { opacity: .45; }
 .verrouille .icone { filter: grayscale(1); opacity: .8; }
 
-.recentrer {
-  position: absolute; bottom: 16px; left: 16px; width: 36px; height: 36px;
+.controles { position: absolute; bottom: 16px; left: 16px; display: flex; gap: 8px; }
+.controle {
+  width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
   border: none; border-radius: 8px; background: var(--card); box-shadow: var(--ring);
-  color: var(--muted); font-size: 20px; cursor: pointer;
+  color: var(--muted); cursor: pointer;
 }
-.recentrer:hover { color: var(--texte); }
+.controle:hover { color: var(--texte-plein); }
+.controle:last-child:hover { color: var(--accent-rouge); }
 </style>

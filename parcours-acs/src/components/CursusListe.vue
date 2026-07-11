@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { icones, CheckCircle2, Lock } from '../data/icones.js'
+import { icones, CheckCircle2, Lock, ChevronRight } from '../data/icones.js'
 
 const props = defineProps({
   modules: Array,
@@ -50,7 +50,7 @@ function etat(m) {
           <span v-if="m.essentiel" class="chip chip-essentiel">Essentiel</span>
           <span v-if="m.id === suivantId" class="chip">À faire maintenant</span>
         </span>
-        <span class="chevron">›</span>
+        <ChevronRight class="chevron" :size="18" />
       </button>
     </section>
   </div>
@@ -77,7 +77,7 @@ function etat(m) {
   padding: 2px 8px; border-radius: 8px;
 }
 .chip-essentiel { background: var(--accent-rouge); color: #fff; }
-.chevron { margin-left: auto; color: var(--muted); font-size: 20px; }
+.chevron { margin-left: auto; color: var(--muted); flex-shrink: 0; }
 .verrouille { opacity: .5; }
 .termine .titre { color: var(--muted); }
 </style>

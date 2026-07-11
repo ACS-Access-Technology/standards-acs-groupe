@@ -80,7 +80,7 @@ const toutCoche = computed(() => objectifsCoches.value === props.module.objectif
         <div class="carte-bloc description">
           <template v-if="profil === 'junior' && lecture">
             <p>{{ lecture.simple }}</p>
-            <p class="analogie">💡 <em>{{ lecture.analogie }}</em></p>
+            <p class="analogie"><Lightbulb :size="15" class="inline-ico" /> <em>{{ lecture.analogie }}</em></p>
             <p class="exemple"><strong>Concrètement :</strong> {{ lecture.exemple }}</p>
           </template>
           <template v-else-if="profil === 'intermediaire' && lecture">
@@ -189,7 +189,7 @@ const toutCoche = computed(() => objectifsCoches.value === props.module.objectif
 @media (max-width: 768px) {
   .voile { background: var(--fond); } /* pas de canevas derrière sur mobile */
   .fiche { padding: 24px 16px 60px; gap: 20px; }
-  .fermer { top: -6px; }
+  .fermer { top: -6px; width: 44px; height: 44px; }
   overflow-y: auto;
 }
 .fiche {
@@ -222,15 +222,15 @@ h1 { font-size: 22px; font-weight: 700; color: var(--primaire); }
 }
 h1 { font-size: 24px; font-weight: 700; color: var(--primaire); text-align: center; }
 
-.verrou { background: #fbeeb1; color: #121c42; padding: 12px 16px; font-size: 14px; border-radius: 8px; }
+.verrou { background: var(--avert-fond); color: var(--avert-texte); padding: 12px 16px; font-size: 14px; border-radius: 8px; }
 .verrou.obsolete { font-size: 13px; }
 
 .carte-bloc { background: var(--card); border-radius: 8px; padding: 16px; box-shadow: var(--ring); }
-.description p { font-size: 16px; line-height: 1.75; }
+.description p { font-size: 16px; line-height: 1.75; max-width: 72ch; }
 .description p + p { margin-top: 14px; }
 .analogie { background: var(--list-hover); border-radius: 4px; padding: 12px 16px; font-size: 15px; }
 .exemple { font-size: 15px; }
-.piege { background: #fbeeb1; color: #121c42; border-radius: 4px; padding: 12px 16px; font-size: 15px; }
+.piege { background: var(--avert-fond); color: var(--avert-texte); border-radius: 4px; padding: 12px 16px; font-size: 15px; }
 .regle { font-weight: 500; }
 .renvoi { font-size: 13px; color: var(--muted); }
 .renvoi code { background: var(--ligne-chapitre); padding: 1px 6px; border-radius: 4px; }

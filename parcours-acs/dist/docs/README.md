@@ -1,5 +1,7 @@
 # Standards de développement ACS Groupe
 
+![CI](https://github.com/acs-groupe/standards-acs-groupe/actions/workflows/ci.yml/badge.svg)
+
 | | |
 |---|---|
 | **Statut** | Standard interne ACS Groupe — applicable à tout projet de plateforme |
