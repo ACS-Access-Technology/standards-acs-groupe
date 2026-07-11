@@ -34,8 +34,25 @@ function titre(moduleId) {
   return modules.find(m => m.id === moduleId)?.titre || moduleId
 }
 
+// Modules pas encore validés côté serveur, calculé localement — PocketBase masque le détail
+// des erreurs levées par un hook (juste "Something went wrong..."), donc le seul moyen
+// d'indiquer QUEL module bloque est de re-vérifier côté client avant même d'appeler le
+// serveur (Fatima, revue party mode, 3e passe : un rejet muet, sans nom de module, est
+// undiagnosticable pour un dev qui vient de terminer son parcours).
+const modulesNonValides = computed(() =>
+  modules.filter(m => {
+    const p = props.progression?.[m.id]
+    return !(p?.termine && p?.scoreSource === 'server' && (p?.quizScore || 0) >= 75)
+  })
+)
+
 async function generer() {
   erreurServeur.value = ''
+
+  if (modulesNonValides.value.length > 0) {
+    erreurServeur.value = `Pas encore validés côté serveur (resynchronise puis réessaie) : ${modulesNonValides.value.map(m => m.titre).join(', ')}`
+    return
+  }
 
   if (synchro.connecte.value) {
     // Le contenu et le hash affichés/exportés sont ceux renvoyés par le hook PocketBase — le
@@ -44,11 +61,10 @@ async function generer() {
     // recorrèle tout le reste depuis les progressions server-validated).
     try {
       const enregistrement = await synchro.enregistrerAttestation({ dev: { nom: nomConnu.value, profil: props.profil } }, '')
-      attestation.value = enregistrement.contenu
-      attestation.value.hash = enregistrement.hash
+      attestation.value = { ...enregistrement.contenu, hash: enregistrement.hash, verifieServeur: true }
       verifieServeur.value = true
-    } catch (e) {
-      erreurServeur.value = e?.response?.message || 'attestation refusée par le serveur — un ou plusieurs modules ne sont pas validés côté serveur.'
+    } catch {
+      erreurServeur.value = 'Attestation refusée par le serveur — resynchronise (bouton de statut en haut) puis réessaie ; si le problème persiste, un module a pu être invalidé après coup.'
     }
     return
   }
@@ -70,7 +86,12 @@ async function generer() {
       })),
   }
   const hash = await sha256Hex(JSON.stringify(contenu))
-  attestation.value = { ...contenu, hash }
+  // `verifieServeur` est écrit DANS le JSON exporté (Fatima, revue party mode, 3e passe : un
+  // fichier transmis des semaines plus tard doit rester lisible comme non probant sans
+  // dépendre du contexte de l'écran) mais HORS du contenu haché — comme côté connecté, le
+  // hash ne couvre que `contenu` ; `hash` et `verifieServeur` sont des métadonnées ajoutées
+  // après coup (voir ATTESTATION.md pour la procédure de recalcul).
+  attestation.value = { ...contenu, hash, verifieServeur: false }
   verifieServeur.value = false
 }
 

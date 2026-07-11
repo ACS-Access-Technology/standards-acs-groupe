@@ -17,6 +17,11 @@
 //   parsé — il faut décoder puis JSON.parse à la main.
 // - $security.sha256(texte) est disponible pour recalculer le hash côté serveur (vérifié :
 //   même digest que hashlib.sha256 côté Python).
+//
+// Duplication volontaire (Winston, revue party mode, 3e passe) : les deux hooks progressions
+// (create/update ci-dessous) contiennent la même logique de validation copiée-collée, PAS
+// factorisée — voir la contrainte de scoping ci-dessus. Si tu corriges un bug dans l'un,
+// répercute-le dans l'autre à la main.
 
 onRecordCreateRequest((e) => {
   const bareme = require(`${__hooks}/bareme.json`)
@@ -111,16 +116,20 @@ onRecordCreateRequest((e) => {
 
   // Reconstruction serveur du contenu attesté : le nom vient EXCLUSIVEMENT du compte
   // authentifié (jamais du client — un nom mensonger sur une vraie attestation reste un
-  // mensonge sur l'identité, donc contractuel, pas cosmétique). Seul le profil déclaré
-  // (junior/intermédiaire/senior, purement informatif, n'attribue rien) vient du client.
-  // Tout ce qui prouve la conformité (modules, scores) vient exclusivement des progressions
-  // server-validated ci-dessus.
+  // mensonge sur l'identité, donc contractuel, pas cosmétique). Le profil déclaré vient du
+  // client mais est restreint à un enum fermé (Max, revue party mode, 3e passe : un profil en
+  // texte libre était injectable tel quel dans un document hashé — "Lead Architecte Certifié
+  // Niveau 9" passait sans contrôle). Tout ce qui prouve la conformité (modules, scores) vient
+  // exclusivement des progressions server-validated ci-dessus.
+  const PROFILS_CONNUS = ['junior', 'intermediaire', 'senior']
   const brutClient = e.record.get('contenu')
   const texteClient = brutClient == null ? '' : (Array.isArray(brutClient) ? String.fromCharCode(...brutClient) : String(brutClient))
   const contenuClient = texteClient ? JSON.parse(texteClient) : {}
+  const profilDeclare = contenuClient.dev && contenuClient.dev.profil
+  const profil = PROFILS_CONNUS.indexOf(profilDeclare) !== -1 ? profilDeclare : null
 
   const contenu = {
-    dev: { nom: e.auth.get('nom') || e.auth.get('email'), profil: (contenuClient.dev && contenuClient.dev.profil) || null },
+    dev: { nom: e.auth.get('nom') || e.auth.get('email'), profil },
     dateUTC: new Date().toISOString(),
     parcours: { total: Object.keys(bareme).length, completes: modulesValides.length },
     modules: modulesValides,
