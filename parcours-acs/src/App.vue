@@ -84,18 +84,31 @@ function fusionner(distante) {
   for (const [module, entree] of Object.entries(distante)) {
     const distantPlusRecent = new Date(entree.maj).getTime() >= majLocale
     const existant = locale[module]
-    if (!existant) { locale[module] = entree.donnees; continue }
+    // Ce qui vient de rapatrier() est lu directement depuis PocketBase — donc déjà repassé
+    // par le hook de revalidation serveur. Ce n'est jamais une donnée "client" locale.
+    const donneesDistantes = { ...entree.donnees, scoreSource: entree.donnees?.scoreSource || 'server' }
+    if (!existant) { locale[module] = donneesDistantes; continue }
 
-    // Le reste de la fiche (objectifs, termine) suit l'horodatage le plus récent —
-    // mais le score de quiz suit le meilleur score, jamais une horloge mal calée
-    // ne doit faire régresser une réussite (Fatima, revue party mode).
-    const base = distantPlusRecent ? entree.donnees : existant
-    const autre = distantPlusRecent ? existant : entree.donnees
+    // Le reste de la fiche (objectifs, termine) suit l'horodatage le plus récent.
+    // Le score de quiz suit une règle différente et plus stricte (Fatima, revue party mode,
+    // 2e passe) : un score "server" (recalculé par le hook PocketBase) bat toujours un score
+    // "client" (calculé localement, pas encore revalidé) quel que soit le montant — sinon un
+    // score local jamais repassé par le hook pourrait battre un score serveur légitime dans
+    // la fenêtre avant sa propre revalidation. Entre deux scores de même provenance, le
+    // meilleur gagne, comme avant.
+    const base = distantPlusRecent ? donneesDistantes : existant
+    const autre = distantPlusRecent ? existant : donneesDistantes
     const fusionne = { ...base }
-    if ((autre?.quizScore ?? -1) > (fusionne.quizScore ?? -1)) {
+    const autreEstServeur = autre?.scoreSource === 'server'
+    const baseEstServeur = fusionne?.scoreSource === 'server'
+    const autreGagne = autreEstServeur && !baseEstServeur
+      ? true
+      : (autreEstServeur === baseEstServeur && (autre?.quizScore ?? -1) > (fusionne.quizScore ?? -1))
+    if (autreGagne) {
       fusionne.quizScore = autre.quizScore
       fusionne.quizDate = autre.quizDate
       fusionne.versionCorpus = autre.versionCorpus
+      fusionne.scoreSource = autre.scoreSource
     }
     locale[module] = fusionne
   }
@@ -123,11 +136,13 @@ function basculerTermine(moduleId) {
   p.termine = !p.termine
 }
 
-async function enregistrerQuiz(moduleId, score) {
+async function enregistrerQuiz(moduleId, { score, reponses }) {
   const p = progression.value[moduleId] || (progression.value[moduleId] = { objectifs: {}, termine: false })
-  p.quizScore = score
+  p.quizScore = score // indicatif, hors ligne uniquement — le hook PocketBase le recalcule et l'écrase à la synchro
   p.quizDate = new Date().toISOString()
   p.versionCorpus = await versionActuelle() // gel de la version validée (cf. Attestation.vue pour la détection d'obsolescence)
+  p.reponses = reponses // transmis au serveur pour revalidation (pocketbase/pb_hooks/main.pb.js) ; jamais affiché tel quel
+  p.scoreSource = 'client' // jamais fait confiance dans une fusion tant que le hook serveur ne l'a pas revalidé (cf. fusionner())
 }
 
 function reinitialiser() {
@@ -156,6 +171,7 @@ function reinitialiser() {
           <p>Suis le chemin, ouvre chaque module, coche les objectifs. Un module se débloque quand ses prérequis sont terminés.</p>
         </div>
       </div>
+      <div class="actions">
       <button class="btn-lexique" @click="lexiqueOuvert = true">Lexique</button>
       <button
         v-if="synchro.actif"
@@ -172,6 +188,7 @@ function reinitialiser() {
           :class="{ actif: profil === pr.id }"
           @click="profil = pr.id"
         >{{ pr.label }}</button>
+      </div>
       </div>
       <div class="score">
         <div class="barre"><div class="remplissage" :style="{ width: stats.pct + '%' }"></div></div>
@@ -191,16 +208,19 @@ function reinitialiser() {
       </div>
     </header>
 
-    <CursusListe
-      v-if="estMobile"
-      :modules="modules"
-      :progression="progression"
-      :est-debloque="estDebloque"
-      @ouvrir="ouvrir"
-    />
+    <template v-if="estMobile">
+      <CursusListe
+        :modules="modules"
+        :progression="progression"
+        :est-debloque="estDebloque"
+        @ouvrir="ouvrir"
+      />
+      <button class="reset-mobile" @click="reinitialiser">Réinitialiser la progression</button>
+    </template>
     <CursusMap
       v-else
       ref="carteRef"
+      @reinitialiser="reinitialiser"
       :actif="moduleActif ? moduleActif.id : null"
       :modules="modules"
       :progression="progression"
@@ -217,7 +237,7 @@ function reinitialiser() {
       @fermer="fermerFiche()"
       @objectif="i => basculerObjectif(moduleActif.id, i)"
       @termine="basculerTermine(moduleActif.id)"
-      @quiz-reussi="score => enregistrerQuiz(moduleActif.id, score)"
+      @quiz-reussi="donnees => enregistrerQuiz(moduleActif.id, donnees)"
       @lire="d => docActif = d"
       @lexique="lexiqueOuvert = true"
     />
@@ -259,7 +279,7 @@ function reinitialiser() {
   --card: #fff;
   --texte: rgba(18, 28, 66, .85);
   --texte-plein: #121c42;
-  --muted: rgba(18, 28, 66, .6);
+  --muted: rgba(18, 28, 66, .7);
   --edge: #acb8c0;
   --bordure: #dde7fd;
   --grille: #d5e3ec;
@@ -270,6 +290,8 @@ function reinitialiser() {
   --socle-cote-1: #9aa9bd;
   --socle-cote-2: #75859c;
   --socle-ombre: rgba(18, 28, 66, .16);
+  --avert-fond: #fbeeb1;
+  --avert-texte: #4a3a05;
   --ligne-chapitre: #f7fafb;
   --list-hover: color-mix(in srgb, #1b2a9e 8%, transparent);
 }
@@ -280,7 +302,7 @@ function reinitialiser() {
     --card: #22244d;
     --texte: rgba(238, 240, 255, .85);
     --texte-plein: #eef0ff;
-    --muted: rgba(238, 240, 255, .6);
+    --muted: rgba(238, 240, 255, .72);
     --edge: #595e9d;
     --bordure: #2e3163;
     --grille: #262a55;
@@ -290,11 +312,14 @@ function reinitialiser() {
     --socle-cote-1: #1c1f45;
     --socle-cote-2: #12142f;
     --socle-ombre: rgba(0, 0, 0, .45);
+    --avert-fond: #3d3512;
+    --avert-texte: #f0e4ac;
     --ligne-chapitre: #171933;
     --list-hover: color-mix(in srgb, #7c8cf8 8%, transparent);
   }
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
+:focus-visible { outline: 2px solid var(--primaire); outline-offset: 2px; border-radius: 4px; }
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-weight: 400;
@@ -304,8 +329,9 @@ body {
 .app { min-height: 100vh; display: flex; flex-direction: column; }
 header {
   display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap;
-  padding: 16px 28px; background: var(--card); box-shadow: var(--ring); position: relative; z-index: 2;
+  padding: 14px 28px; background: var(--card); box-shadow: var(--ring); position: relative; z-index: 2;
 }
+.actions { display: flex; align-items: center; gap: 10px; }
 h1 { font-size: 20px; font-weight: 700; color: var(--texte-plein); }
 h1 span { font-weight: 500; color: var(--muted); font-size: 14px; margin-left: 10px; }
 header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
@@ -351,6 +377,12 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 }
 .choix button:hover { opacity: .9; }
 .score { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.reset-mobile {
+  margin: 0 16px 24px; padding: 12px; border: none; border-radius: 8px;
+  background: var(--card); box-shadow: var(--ring); color: var(--muted);
+  font-size: 13px; font-family: inherit; cursor: pointer;
+}
+.reset-mobile:hover { color: var(--accent-rouge); }
 @media (max-width: 768px) {
   header { padding: 12px 16px; gap: 12px; }
   header p { display: none; }
@@ -358,15 +390,12 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
   h1 { font-size: 16px; }
   h1 span { display: block; margin-left: 0; font-size: 12px; }
   .barre { width: 90px; }
-  .profil-choix button { padding: 5px 10px; font-size: 12px; }
+  .profil-choix button { padding: 11px 12px; font-size: 12px; }
+  .btn-lexique { padding: 11px 14px; }
 }
 .barre { width: 180px; height: 8px; background: var(--bordure); border-radius: 8px; overflow: hidden; }
-.remplissage { height: 100%; background: linear-gradient(90deg, #e8262d, #f28c1f, #1b2a9e); transition: width .3s; }
-.reset {
-  border: none; background: var(--fond); color: var(--muted); box-shadow: var(--ring);
-  padding: 6px 12px; font-size: 12px; font-family: inherit; border-radius: 8px; cursor: pointer;
-}
-.reset:hover { color: var(--accent-rouge); }
+.remplissage { height: 100%; background: var(--primaire); transition: width .3s; }
+
 .valider-connaissances {
   border: none; background: var(--primaire); color: var(--sur-primaire); border-radius: 8px;
   padding: 6px 12px; font-size: 12px; font-family: inherit; cursor: pointer; font-weight: 500;

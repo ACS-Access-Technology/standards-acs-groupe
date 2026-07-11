@@ -27,8 +27,11 @@ const reussi = computed(() => score.value / props.questions.length >= SEUIL)
 
 function valider() {
   soumis.value = true
-  if (reussi.value) emit('reussi', { score: pct.value })
-  else emit('echec', { score: pct.value })
+  // Le score affiché ici est indicatif (UX immédiate). La valeur qui compte pour
+  // l'attestation est recalculée côté serveur à partir de `reponses` (Max, revue party mode).
+  const donnees = { score: pct.value, reponses: [...reponses.value] }
+  if (reussi.value) emit('reussi', donnees)
+  else emit('echec', donnees)
 }
 </script>
 
@@ -46,7 +49,13 @@ function valider() {
       <div class="liste">
         <div v-for="(item, i) in questions" :key="i" class="question" :class="{ correcte: soumis && reponses[i] === item.correct, fausse: soumis && reponses[i] !== item.correct }">
           <p class="enonce">{{ i + 1 }}. {{ item.q }}</p>
-          <label v-for="(opt, oi) in item.options" :key="oi" class="option">
+          <label
+            v-for="(opt, oi) in item.options" :key="oi" class="option"
+            :class="{
+              'bonne-reponse': soumis && oi === item.correct,
+              'mauvaise-reponse': soumis && reponses[i] === oi && oi !== item.correct,
+            }"
+          >
             <input
               type="radio"
               :name="'q' + i"
@@ -55,6 +64,8 @@ function valider() {
               @change="choisir(i, oi)"
             />
             <span>{{ opt }}</span>
+            <CheckCircle2 v-if="soumis && oi === item.correct" :size="14" class="marque-ok" />
+            <X v-else-if="soumis && reponses[i] === oi" :size="14" class="marque-ko" />
           </label>
           <p v-if="soumis && reponses[i] !== item.correct && item.explication" class="explication">{{ item.explication }}</p>
         </div>
@@ -104,6 +115,10 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
   color: var(--texte); cursor: pointer;
 }
 .option input { accent-color: var(--primaire); }
+.option.bonne-reponse { color: #1f7a4d; font-weight: 600; }
+.option.mauvaise-reponse { color: var(--accent-rouge); text-decoration: line-through; }
+.marque-ok { color: #1f7a4d; flex-shrink: 0; }
+.marque-ko { color: var(--accent-rouge); flex-shrink: 0; }
 .explication { margin-top: 6px; font-size: 12.5px; color: var(--muted); font-style: italic; }
 footer {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;

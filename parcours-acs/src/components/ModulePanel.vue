@@ -29,13 +29,13 @@ const estObsolete = computed(() =>
   !!(props.progression?.versionCorpus && versionCourante.value && props.progression.versionCorpus !== versionCourante.value)
 )
 
-function surEchecQuiz({ score }) {
+function surEchecQuiz() {
   quizOuvert.value = false
   quizDisponible.value = false
 }
-function surReussiteQuiz({ score }) {
+function surReussiteQuiz({ score, reponses }) {
   quizOuvert.value = false
-  emit('quiz-reussi', score)
+  emit('quiz-reussi', { score, reponses })
 }
 
 const prerequisTitres = computed(() =>
