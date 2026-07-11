@@ -14,7 +14,8 @@ const emit = defineEmits(['fermer'])
 const nomSaisi = ref('')
 const versionCorpus = ref('…')
 const attestation = ref(null)
-const enregistrementDistant = ref('') // '', 'en cours', 'ok', 'échec'
+const verifieServeur = ref(false) // true seulement si contenu/hash viennent du hook PocketBase, pas du navigateur
+const erreurServeur = ref('')
 
 const nomConnu = computed(() => synchro.connecte.value ? synchro.nomDev.value : nomSaisi.value.trim())
 
@@ -27,34 +28,50 @@ async function sha256Hex(texte) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
+// Le titre d'un module n'est pas une donnée contractuelle (juste un libellé d'affichage) —
+// il n'a pas à être hashé ni vérifié serveur, on l'enrichit localement pour la lecture.
+function titre(moduleId) {
+  return modules.find(m => m.id === moduleId)?.titre || moduleId
+}
+
 async function generer() {
+  erreurServeur.value = ''
+
+  if (synchro.connecte.value) {
+    // Le contenu et le hash affichés/exportés sont ceux renvoyés par le hook PocketBase — le
+    // navigateur ne calcule plus rien de contractuel, il ne fait que soumettre nom/profil,
+    // deux champs informatifs (Max, revue party mode, 2e passe : le hook reconstruit et
+    // recorrèle tout le reste depuis les progressions server-validated).
+    try {
+      const enregistrement = await synchro.enregistrerAttestation({ dev: { nom: nomConnu.value, profil: props.profil } }, '')
+      attestation.value = enregistrement.contenu
+      attestation.value.hash = enregistrement.hash
+      verifieServeur.value = true
+    } catch (e) {
+      erreurServeur.value = e?.response?.message || 'attestation refusée par le serveur — un ou plusieurs modules ne sont pas validés côté serveur.'
+    }
+    return
+  }
+
+  // Hors connexion : l'attestation reste calculable localement pour un usage pédagogique,
+  // mais elle N'EST PAS opposable en audit — rien n'a été revérifié côté serveur.
   const contenu = {
     dev: { nom: nomConnu.value, profil: props.profil },
     dateUTC: new Date().toISOString(),
-    versionCorpus: versionCorpus.value,
     parcours: { total: modules.length, completes: modules.filter(m => props.progression?.[m.id]?.termine).length },
-    modules: modules.map(m => ({
-      id: m.id,
-      titre: m.titre,
-      termine: !!props.progression?.[m.id]?.termine,
-      quizScore: props.progression?.[m.id]?.quizScore ?? null,
-      quizDate: props.progression?.[m.id]?.quizDate ?? null,
-      versionCorpusValidation: props.progression?.[m.id]?.versionCorpus ?? null,
-      obsolete: !!(props.progression?.[m.id]?.versionCorpus && props.progression[m.id].versionCorpus !== versionCorpus.value),
-    })),
+    modules: modules
+      .filter(m => props.progression?.[m.id]?.termine)
+      .map(m => ({
+        id: m.id,
+        termine: true,
+        quizScore: props.progression?.[m.id]?.quizScore ?? null,
+        quizDate: props.progression?.[m.id]?.quizDate ?? null,
+        versionCorpusValidation: props.progression?.[m.id]?.versionCorpus ?? null,
+      })),
   }
   const hash = await sha256Hex(JSON.stringify(contenu))
   attestation.value = { ...contenu, hash }
-
-  if (synchro.connecte.value) {
-    enregistrementDistant.value = 'en cours'
-    try {
-      await synchro.enregistrerAttestation(contenu, hash)
-      enregistrementDistant.value = 'ok'
-    } catch {
-      enregistrementDistant.value = 'échec'
-    }
-  }
+  verifieServeur.value = false
 }
 
 function exporterJSON() {
@@ -84,39 +101,41 @@ function imprimer() {
           <input v-model="nomSaisi" type="text" placeholder="Prénom Nom" />
         </label>
         <p v-else class="connecte">Connecté en tant que <strong>{{ synchro.nomDev.value }}</strong> — le nom vient de ton compte.</p>
+        <p v-if="!synchro.connecte.value" class="alerte-obsolete">
+          <AlertTriangle :size="14" class="inline-ico" />
+          Non connecté : l'attestation reste calculée localement, à titre pédagogique — elle n'est pas revérifiée côté serveur et n'a pas de valeur contractuelle.
+        </p>
+        <p v-if="erreurServeur" class="statut ko">{{ erreurServeur }}</p>
         <button class="valider" :disabled="!nomConnu" @click="generer">Générer l'attestation</button>
       </template>
 
       <template v-else>
         <div class="feuille" id="feuille-attestation">
           <h2 id="att-titre">Attestation de parcours — Standards ACS Groupe</h2>
+          <p v-if="verifieServeur" class="statut ok">Contenu et hash générés et vérifiés côté serveur (PocketBase) — opposable.</p>
+          <p v-else class="alerte-obsolete">
+            <AlertTriangle :size="14" class="inline-ico" />
+            Non vérifié côté serveur — valeur pédagogique uniquement.
+          </p>
           <dl>
             <dt>Développeur</dt><dd>{{ attestation.dev.nom }}</dd>
             <dt>Profil déclaré</dt><dd>{{ attestation.dev.profil }}</dd>
             <dt>Date (UTC)</dt><dd>{{ attestation.dateUTC }}</dd>
-            <dt>Version du corpus</dt><dd>{{ attestation.versionCorpus }}</dd>
             <dt>Modules complétés</dt><dd>{{ attestation.parcours.completes }}/{{ attestation.parcours.total }}</dd>
           </dl>
-          <p v-if="attestation.modules.some(m => m.obsolete)" class="alerte-obsolete">
-            <AlertTriangle :size="14" class="inline-ico" />
-            Certains modules ont été validés sur une version antérieure du corpus (colonne « Version »). L'attestation reste une photo à l'instant T — elle ne garantit pas la conformité aux mises à jour ultérieures de ces modules.
-          </p>
           <table>
             <thead><tr><th>Module</th><th>Score quiz</th><th>Date</th><th>Version</th></tr></thead>
             <tbody>
-              <tr v-for="m in attestation.modules" :key="m.id" :class="{ obsolete: m.obsolete }">
-                <td>{{ m.titre }}</td>
+              <tr v-for="m in attestation.modules" :key="m.id">
+                <td>{{ titre(m.id) }}</td>
                 <td>{{ m.quizScore !== null ? m.quizScore + ' %' : '—' }}</td>
                 <td>{{ m.quizDate ? m.quizDate.slice(0, 10) : '—' }}</td>
-                <td>{{ m.versionCorpusValidation ?? '—' }}<span v-if="m.obsolete"> ⚠️</span></td>
+                <td>{{ m.versionCorpusValidation ?? '—' }}</td>
               </tr>
             </tbody>
           </table>
           <p class="hash">SHA-256 : <code>{{ attestation.hash }}</code></p>
         </div>
-
-        <p v-if="enregistrementDistant === 'ok'" class="statut ok no-print">Enregistrée dans ton compte.</p>
-        <p v-else-if="enregistrementDistant === 'échec'" class="statut ko no-print">Échec d'enregistrement distant — le JSON exporté reste ta preuve.</p>
 
         <div class="actions no-print">
           <button class="valider" @click="exporterJSON"><Download :size="16" /> Exporter le JSON</button>
