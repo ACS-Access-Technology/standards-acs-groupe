@@ -34,7 +34,7 @@ Livré : `pocketbase/README.md` (collections, règles deny-by-default, exploitat
 
 ## P2 — Confort d'apprentissage
 
-### 5. PWA hors-ligne (formation continue, y compris sur mobile) ✅ validé au brainstorm
+### 5. PWA hors-ligne — **livré le 10/07/2026** (vite-plugin-pwa, précache shell + 27 docs, toast de mise à jour, indicateur hors-ligne)
 
 - **Pourquoi** : cohérent avec l'ADN offline-first du standard ; le dev continue sa formation dans les transports, sur téléphone.
 - **Quoi** : manifest (nom, icônes, couleurs charte `#1b2a9e`/`#f7fafb`, display standalone) + service worker qui précache le shell, les 26 documents de `docs/` et les données — **tout le contenu est statique, le cas d'usage est idéal**. La progression est déjà locale (localStorage), donc fonctionne hors-ligne par nature.

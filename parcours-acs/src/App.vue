@@ -7,6 +7,7 @@ import DocViewer from './components/DocViewer.vue'
 import Lexique from './components/Lexique.vue'
 import Connexion from './components/Connexion.vue'
 import * as synchro from './services/synchro.js'
+import { registerSW } from 'virtual:pwa-register'
 import QuizFinal from './components/QuizFinal.vue'
 import Attestation from './components/Attestation.vue'
 import { versionActuelle } from './services/corpusVersion.js'
@@ -22,6 +23,15 @@ function charger() {
 const progression = ref(charger())
 const moduleActif = ref(null)
 const carteRef = ref(null)
+// PWA : proposer la mise à jour quand une nouvelle version du corpus est publiée
+const majDisponible = ref(false)
+const appliquerMaj = registerSW({
+  onNeedRefresh() { majDisponible.value = true },
+})
+const horsLigne = ref(!navigator.onLine)
+window.addEventListener('online', () => { horsLigne.value = false })
+window.addEventListener('offline', () => { horsLigne.value = true })
+
 const mq = window.matchMedia('(max-width: 768px)')
 const estMobile = ref(mq.matches)
 const surMq = e => { estMobile.value = e.matches }
@@ -245,6 +255,14 @@ function reinitialiser() {
     <DocViewer v-if="docActif" :doc="docActif" @fermer="docActif = null" />
     <Lexique v-if="lexiqueOuvert" @fermer="lexiqueOuvert = false" />
     <Connexion v-if="connexionOuverte" @fermer="connexionOuverte = false" @fusion="fusionner" />
+
+    <div v-if="majDisponible" class="toast-maj" role="status">
+      <span>Nouvelle version du parcours disponible.</span>
+      <button @click="appliquerMaj()">Recharger</button>
+    </div>
+    <div v-if="horsLigne" class="toast-horsligne" role="status">
+      Hors connexion — tout le parcours reste disponible, ta progression est enregistrée en local.
+    </div>
     <QuizFinal v-if="quizOuvert" @fermer="quizOuvert = false" @reussi="marquerQuizReussi" />
     <Attestation v-if="attestationOuverte" :progression="progression" :profil="profil" @fermer="attestationOuverte = false" />
 
@@ -383,6 +401,19 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
   font-size: 13px; font-family: inherit; cursor: pointer;
 }
 .reset-mobile:hover { color: var(--accent-rouge); }
+.toast-maj, .toast-horsligne {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px; z-index: 50;
+  background: var(--texte-plein); color: var(--fond);
+  padding: 12px 18px; border-radius: 8px; font-size: 14px;
+  box-shadow: 0 4px 16px rgba(18, 28, 66, .25);
+  max-width: calc(100vw - 32px);
+}
+.toast-maj button {
+  border: none; border-radius: 6px; padding: 7px 14px; cursor: pointer;
+  background: var(--primaire); color: var(--sur-primaire); font-family: inherit; font-size: 13px; font-weight: 500;
+}
+.toast-horsligne { background: var(--avert-fond); color: var(--avert-texte); }
 @media (max-width: 768px) {
   header { padding: 12px 16px; gap: 12px; }
   header p { display: none; }
