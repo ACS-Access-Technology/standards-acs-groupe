@@ -1,5 +1,7 @@
 # Standards de développement ACS Groupe
 
+[![CI](https://github.com/ACS-Access-Technology/standards-acs-groupe/actions/workflows/ci.yml/badge.svg)](https://github.com/ACS-Access-Technology/standards-acs-groupe/actions/workflows/ci.yml)
+
 | | |
 |---|---|
 | **Statut** | Standard interne ACS Groupe — applicable à tout projet de plateforme |
@@ -36,7 +38,7 @@ Ce corpus est **contractuel, pas indicatif** : un travail qui ne satisfait pas l
 
 | Document | Contenu |
 |---|---|
-| `01-onboarding-developpeur.md` | Parcours d'arrivée J1 / semaine 1 / mois 1, checklists d'accès |
+| `01-onboarding-developpeur.md` | Parcours d'arrivée T1 / T2 / T3, checklists d'accès |
 | `02-standards-de-code.md` | Formatage, typage, analyse statique, dates/monnaie/concurrence, a11y, code IA |
 | `03-workflow-git-revues.md` | Trunk-based, Conventional Commits, PR, revues, SemVer, secrets dans Git |
 | `04-regles-architecture.md` | Couches, modules, outbox, migrations, audit write-ahead, résilience, cache, corrélation |
