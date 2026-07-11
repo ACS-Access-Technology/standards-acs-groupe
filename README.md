@@ -1,5 +1,7 @@
 # Standards de développement ACS Groupe
 
+[![CI](https://github.com/ACS-Access-Technology/standards-acs-groupe/actions/workflows/ci.yml/badge.svg)](https://github.com/ACS-Access-Technology/standards-acs-groupe/actions/workflows/ci.yml)
+
 | | |
 |---|---|
 | **Statut** | Standard interne ACS Groupe — applicable à tout projet de plateforme |
@@ -14,16 +16,16 @@ Ce corpus est **contractuel, pas indicatif** : un travail qui ne satisfait pas l
 
 **Standard vivant** : ce corpus n'est pas statique. Il évolue avec les audits, incidents, retours de projet, nouvelles menaces, évolutions réglementaires et pratiques internationales. Une règle obsolète se révise ; une règle insuffisante se renforce ; une exception répétée devient un sujet de refonte. Toute évolution est versionnée, relue humainement, tracée dans `CHANGELOG.md` et reliée à des preuves quand elle touche un contrôle auditable.
 
-## Parcours du nouveau développeur (ordre de lecture imposé)
+## Parcours du nouveau développeur (ordre de lecture recommandé, à ton rythme)
 
-| Jour | Lire | Objectif |
+| Temps | Lire | Objectif |
 |---|---|---|
-| J1 | `01-onboarding-developpeur.md` | Accès, environnement, interdictions absolues |
-| J1–J2 | `02-standards-de-code.md` + `03-workflow-git-revues.md` | Écrire et livrer du code conforme |
-| J3–J5 | `04-regles-architecture.md` + `11-conception-api.md` | Les règles bloquantes vérifiées en CI |
-| Semaine 2 | `05-strategie-tests.md` + `06-securite-developpeur.md` | Tester et sécuriser comme on code |
-| Semaine 3 | `07-cicd-supply-chain.md` + `08-exploitation-observabilite.md` | Le chemin jusqu'à la production |
-| Semaine 4 | `12-cycle-de-vie-projet.md` + `13-vie-du-produit-mco.md` + `15-gouvernance-des-donnees.md` | Où le travail s'insère, et ce qui vit après la prod |
+| T1 | `01-onboarding-developpeur.md` | Accès, environnement, interdictions absolues |
+| T2 | `02-standards-de-code.md` + `03-workflow-git-revues.md` | Écrire et livrer du code conforme |
+| T3 | `04-regles-architecture.md` + `11-conception-api.md` | Les règles bloquantes vérifiées en CI |
+| T4 | `05-strategie-tests.md` + `06-securite-developpeur.md` | Tester et sécuriser comme on code |
+| T5 | `07-cicd-supply-chain.md` + `08-exploitation-observabilite.md` | Le chemin jusqu'à la production |
+| T6 | `12-cycle-de-vie-projet.md` + `13-vie-du-produit-mco.md` + `15-gouvernance-des-donnees.md` | Où le travail s'insère, et ce qui vit après la prod |
 | Référence | `09-toolchain.md` + `10-gabarits.md` + `14-auto-audit.md` + `MATRICE-ADOPTION.md` | Outils, gabarits, vérification |
 
 **Parcours par rôle** (mêmes documents, ordre différent) :
@@ -36,7 +38,7 @@ Ce corpus est **contractuel, pas indicatif** : un travail qui ne satisfait pas l
 
 | Document | Contenu |
 |---|---|
-| `01-onboarding-developpeur.md` | Parcours d'arrivée J1 / semaine 1 / mois 1, checklists d'accès |
+| `01-onboarding-developpeur.md` | Parcours d'arrivée T1 / T2 / T3, checklists d'accès |
 | `02-standards-de-code.md` | Formatage, typage, analyse statique, dates/monnaie/concurrence, a11y, code IA |
 | `03-workflow-git-revues.md` | Trunk-based, Conventional Commits, PR, revues, SemVer, secrets dans Git |
 | `04-regles-architecture.md` | Couches, modules, outbox, migrations, audit write-ahead, résilience, cache, corrélation |
