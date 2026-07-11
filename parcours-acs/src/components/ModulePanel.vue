@@ -1,8 +1,10 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { modules } from '../data/modules.js'
 import { lectures } from '../data/lectures.js'
+import { quiz } from '../data/quiz.js'
 import { icones, X, Lock, BookOpen, CheckCircle2 } from '../data/icones.js'
+import Quiz from './Quiz.vue'
 
 const props = defineProps({
   module: Object,
@@ -12,7 +14,22 @@ const props = defineProps({
 })
 
 const lecture = computed(() => lectures[props.module.id]?.[props.profil] || null)
-const emit = defineEmits(['fermer', 'objectif', 'termine', 'lire', 'lexique'])
+const emit = defineEmits(['fermer', 'objectif', 'termine', 'lire', 'lexique', 'quiz-reussi'])
+
+const questionsQuiz = computed(() => quiz[props.module.id] || [])
+const quizOuvert = ref(false)
+// Réinitialisé à chaque (ré)ouverture de la fiche : l'échec impose de refermer/rouvrir pour retenter.
+const quizDisponible = ref(true)
+const quizReussi = computed(() => (props.progression?.quizScore || 0) >= 75)
+
+function surEchecQuiz({ score }) {
+  quizOuvert.value = false
+  quizDisponible.value = false
+}
+function surReussiteQuiz({ score }) {
+  quizOuvert.value = false
+  emit('quiz-reussi', score)
+}
 
 const prerequisTitres = computed(() =>
   props.module.prerequis.map(p => modules.find(m => m.id === p)?.titre)
@@ -91,15 +108,36 @@ const toutCoche = computed(() => objectifsCoches.value === props.module.objectif
         </div>
 
         <button
+          v-if="progression?.termine || (toutCoche && quizReussi)"
           class="valider" :class="{ fait: progression?.termine }"
-          :disabled="!progression?.termine && !toutCoche"
           @click="emit('termine')"
         >
           <CheckCircle2 :size="18" />
           <template v-if="progression?.termine">Terminé — cliquer pour rouvrir</template>
-          <template v-else-if="toutCoche">J'ai terminé ce module</template>
-          <template v-else>Coche les objectifs pour terminer ({{ objectifsCoches }}/{{ module.objectifs.length }})</template>
+          <template v-else>J'ai terminé ce module</template>
         </button>
+        <button
+          v-else-if="toutCoche && questionsQuiz.length && quizDisponible"
+          class="valider"
+          @click="quizOuvert = true"
+        >
+          <CheckCircle2 :size="18" />Lancer le quiz de validation
+        </button>
+        <p v-else-if="toutCoche && questionsQuiz.length && !quizDisponible" class="verrou">
+          Quiz non réussi ({{ progression?.quizScore ?? 0 }} %). Referme la fiche puis rouvre-la pour retenter.
+        </p>
+        <button v-else class="valider" disabled>
+          <CheckCircle2 :size="18" />Coche les objectifs pour terminer ({{ objectifsCoches }}/{{ module.objectifs.length }})
+        </button>
+
+        <Quiz
+          v-if="quizOuvert"
+          :questions="questionsQuiz"
+          :titre="module.titre"
+          @fermer="quizOuvert = false"
+          @reussi="surReussiteQuiz"
+          @echec="surEchecQuiz"
+        />
       </div>
 
       <!-- Colonne chapitres -->

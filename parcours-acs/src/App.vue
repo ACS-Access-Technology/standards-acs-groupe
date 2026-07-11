@@ -7,7 +7,7 @@ import DocViewer from './components/DocViewer.vue'
 import Lexique from './components/Lexique.vue'
 import Connexion from './components/Connexion.vue'
 import * as synchro from './services/synchro.js'
-import Quiz from './components/Quiz.vue'
+import QuizFinal from './components/QuizFinal.vue'
 import { modules } from './data/modules.js'
 import { profils } from './data/lectures.js'
 
@@ -106,6 +106,12 @@ function basculerTermine(moduleId) {
   p.termine = !p.termine
 }
 
+function enregistrerQuiz(moduleId, score) {
+  const p = progression.value[moduleId] || (progression.value[moduleId] = { objectifs: {}, termine: false })
+  p.quizScore = score
+  p.quizDate = new Date().toISOString()
+}
+
 function reinitialiser() {
   if (confirm('Réinitialiser toute la progression ?')) {
     progression.value = {}
@@ -188,6 +194,7 @@ function reinitialiser() {
       @fermer="fermerFiche()"
       @objectif="i => basculerObjectif(moduleActif.id, i)"
       @termine="basculerTermine(moduleActif.id)"
+      @quiz-reussi="score => enregistrerQuiz(moduleActif.id, score)"
       @lire="d => docActif = d"
       @lexique="lexiqueOuvert = true"
     />
@@ -195,7 +202,7 @@ function reinitialiser() {
     <DocViewer v-if="docActif" :doc="docActif" @fermer="docActif = null" />
     <Lexique v-if="lexiqueOuvert" @fermer="lexiqueOuvert = false" />
     <Connexion v-if="connexionOuverte" @fermer="connexionOuverte = false" @fusion="fusionner" />
-    <Quiz v-if="quizOuvert" @fermer="quizOuvert = false" @reussi="marquerQuizReussi" />
+    <QuizFinal v-if="quizOuvert" @fermer="quizOuvert = false" @reussi="marquerQuizReussi" />
 
     <div v-if="premiereVisite" class="bienvenue-voile">
       <div
@@ -233,6 +240,12 @@ function reinitialiser() {
   --bordure: #dde7fd;
   --grille: #d5e3ec;
   --ring: 0 0 0 1px rgba(18, 28, 66, .085);
+  /* Socle 3D des nœuds : face supérieure, épaisseur, ombre au sol */
+  --socle-haut-1: #ffffff;
+  --socle-haut-2: #ccd6e2;
+  --socle-cote-1: #9aa9bd;
+  --socle-cote-2: #75859c;
+  --socle-ombre: rgba(18, 28, 66, .16);
   --ligne-chapitre: #f7fafb;
   --list-hover: color-mix(in srgb, #1b2a9e 8%, transparent);
 }
@@ -248,6 +261,11 @@ function reinitialiser() {
     --bordure: #2e3163;
     --grille: #262a55;
     --ring: 0 0 0 1px rgba(0, 0, 0, .35);
+    --socle-haut-1: #3a3e78;
+    --socle-haut-2: #262a55;
+    --socle-cote-1: #1c1f45;
+    --socle-cote-2: #12142f;
+    --socle-ombre: rgba(0, 0, 0, .45);
     --ligne-chapitre: #171933;
     --list-hover: color-mix(in srgb, #7c8cf8 8%, transparent);
   }

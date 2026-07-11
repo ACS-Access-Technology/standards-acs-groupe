@@ -1,13 +1,16 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { quiz } from '../data/quiz.js'
 import { X, CheckCircle2 } from '../data/icones.js'
 
-const emit = defineEmits(['fermer', 'reussi'])
+const props = defineProps({
+  questions: { type: Array, required: true },
+  titre: { type: String, default: '' },
+})
+const emit = defineEmits(['fermer', 'reussi', 'echec'])
 
-const SEUIL = 8 // sur 10
+const SEUIL = 0.75
 
-const reponses = ref(Array(quiz.length).fill(null))
+const reponses = ref(Array(props.questions.length).fill(null))
 const soumis = ref(false)
 
 function choisir(i, opt) {
@@ -16,20 +19,16 @@ function choisir(i, opt) {
 }
 
 const score = computed(() =>
-  reponses.value.filter((r, i) => r === quiz[i].correct).length
+  reponses.value.filter((r, i) => r === props.questions[i].correct).length
 )
-
+const pct = computed(() => Math.round((score.value / props.questions.length) * 100))
 const toutRepondu = computed(() => reponses.value.every(r => r !== null))
-const reussi = computed(() => score.value >= SEUIL)
+const reussi = computed(() => score.value / props.questions.length >= SEUIL)
 
 function valider() {
   soumis.value = true
-  if (reussi.value) emit('reussi')
-}
-
-function reessayer() {
-  reponses.value = Array(quiz.length).fill(null)
-  soumis.value = false
+  if (reussi.value) emit('reussi', { score: pct.value })
+  else emit('echec', { score: pct.value })
 }
 </script>
 
@@ -38,14 +37,14 @@ function reessayer() {
     <div class="quiz">
       <header>
         <div>
-          <h2 id="quiz-titre">Validation des connaissances</h2>
-          <p>Palier « application » — {{ SEUIL }}/{{ quiz.length }} requis pour terminer le parcours.</p>
+          <h2 id="quiz-titre">Quiz — {{ titre }}</h2>
+          <p>{{ Math.ceil(questions.length * SEUIL) }}/{{ questions.length }} bonnes réponses requises (75 %).</p>
         </div>
         <button class="fermer" @click="emit('fermer')"><X :size="18" /></button>
       </header>
 
       <div class="liste">
-        <div v-for="(item, i) in quiz" :key="i" class="question" :class="{ correcte: soumis && reponses[i] === item.correct, fausse: soumis && reponses[i] !== item.correct }">
+        <div v-for="(item, i) in questions" :key="i" class="question" :class="{ correcte: soumis && reponses[i] === item.correct, fausse: soumis && reponses[i] !== item.correct }">
           <p class="enonce">{{ i + 1 }}. {{ item.q }}</p>
           <label v-for="(opt, oi) in item.options" :key="oi" class="option">
             <input
@@ -57,21 +56,22 @@ function reessayer() {
             />
             <span>{{ opt }}</span>
           </label>
+          <p v-if="soumis && reponses[i] !== item.correct && item.explication" class="explication">{{ item.explication }}</p>
         </div>
       </div>
 
       <footer>
         <template v-if="!soumis">
-          <span class="etat">{{ reponses.filter(r => r !== null).length }}/{{ quiz.length }} répondues</span>
+          <span class="etat">{{ reponses.filter(r => r !== null).length }}/{{ questions.length }} répondues</span>
           <button class="valider" :disabled="!toutRepondu" @click="valider">Valider</button>
         </template>
         <template v-else>
           <span class="resultat" :class="{ ok: reussi }">
             <CheckCircle2 v-if="reussi" :size="18" />
-            Score : {{ score }}/{{ quiz.length }} — {{ reussi ? 'réussi' : 'insuffisant' }}
+            Score : {{ pct }} % — {{ reussi ? 'réussi' : 'insuffisant' }}
           </span>
-          <button v-if="!reussi" class="valider" @click="reessayer">Recommencer</button>
-          <button v-else class="valider" @click="emit('fermer')">Terminer</button>
+          <span v-if="!reussi" class="conseil">Relis le module, referme puis rouvre la fiche pour retenter.</span>
+          <button v-else class="valider" @click="emit('fermer')">Continuer</button>
         </template>
       </footer>
     </div>
@@ -104,9 +104,10 @@ header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
   color: var(--texte); cursor: pointer;
 }
 .option input { accent-color: var(--primaire); }
+.explication { margin-top: 6px; font-size: 12.5px; color: var(--muted); font-style: italic; }
 footer {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 14px 24px 20px;
+  padding: 14px 24px 20px; flex-wrap: wrap;
 }
 .etat { font-size: 13px; color: var(--muted); }
 .valider {
@@ -116,6 +117,7 @@ footer {
 .valider:disabled { background: var(--bordure); color: var(--muted); cursor: not-allowed; }
 .resultat { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--accent-rouge); }
 .resultat.ok { color: var(--primaire); }
+.conseil { font-size: 12.5px; color: var(--muted); }
 @media (max-width: 640px) {
   .voile-quiz { padding: 8px; }
   .quiz { max-height: 94vh; }
