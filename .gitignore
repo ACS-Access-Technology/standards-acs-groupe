@@ -3,3 +3,8 @@ node_modules/
 *.log
 # artefacts locaux de travail
 acs-dev-guard-workspace/
+
+# Environnements : jamais versionnés (03-workflow-git-revues.md §7)
+.env
+.env.*
+!.env.example
