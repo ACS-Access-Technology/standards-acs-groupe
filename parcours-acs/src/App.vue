@@ -87,6 +87,14 @@ watch(progression, v => {
 
 const connexionOuverte = ref(false)
 
+// Verrou du scroll d'arrière-plan : tant qu'une surcouche est ouverte,
+// seul son contenu défile — jamais la carte/liste derrière (bug mobile classique).
+watch(
+  () => !!(moduleActif.value || docActif.value || lexiqueOuvert.value || connexionOuverte.value || premiereVisite.value),
+  ouvert => document.documentElement.classList.toggle('verrou-scroll', ouvert),
+  { immediate: true }
+)
+
 // Fusion au login : par module, l'horodatage le plus récent gagne (simplification documentée)
 function fusionner(distante) {
   const locale = progression.value
@@ -337,6 +345,8 @@ function reinitialiser() {
   }
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
+/* Surcouche ouverte : l'arrière-plan ne défile plus (html ET body, pour iOS) */
+.verrou-scroll, .verrou-scroll body { overflow: hidden; height: 100%; }
 :focus-visible { outline: 2px solid var(--primaire); outline-offset: 2px; border-radius: 4px; }
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;

@@ -183,6 +183,7 @@ const toutCoche = computed(() => objectifsCoches.value === props.module.objectif
 <style scoped>
 /* La fiche recouvre le canevas, qui reste visible très estompé derrière */
 .voile {
+  overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   position: fixed; inset: 0; z-index: 10;
   background: color-mix(in srgb, var(--fond) 25%, transparent);
 }

@@ -42,7 +42,8 @@ async function valider() {
 </template>
 
 <style scoped>
-.voile-cx { position: fixed; inset: 0; z-index: 45; background: rgba(18, 28, 66, .45); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.voile-cx {
+  overscroll-behavior: contain; position: fixed; inset: 0; z-index: 45; background: rgba(18, 28, 66, .45); display: flex; align-items: center; justify-content: center; padding: 16px; }
 .cx {
   width: min(400px, 100%); background: var(--card); border-radius: 8px; box-shadow: var(--ring);
   padding: 28px; display: flex; flex-direction: column; gap: 14px; position: relative;

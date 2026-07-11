@@ -19,10 +19,12 @@ const resultats = computed(() => {
   <div class="voile-lex" @click.self="emit('fermer')">
     <div class="lex">
       <header>
-        <h2>Lexique</h2>
+        <h2 id="lex-titre">Lexique</h2>
         <button class="fermer" @click="emit('fermer')"><X :size="18" /></button>
       </header>
+      <label for="lex-recherche" class="sr-only">Rechercher un terme dans le lexique</label>
       <input
+        id="lex-recherche"
         v-model="recherche"
         type="search"
         placeholder="Cherche un terme ou un mot de la définition… (ex. PR, secret, N+1)"
@@ -44,6 +46,7 @@ const resultats = computed(() => {
 
 <style scoped>
 .voile-lex {
+  overscroll-behavior: contain;
   position: fixed; inset: 0; z-index: 35; background: rgba(18, 28, 66, .35);
   display: flex; justify-content: center; padding: 48px 16px;
 }
@@ -64,7 +67,7 @@ input {
   border: 1px solid var(--bordure); border-radius: 8px; background: var(--fond); color: var(--texte);
 }
 input:focus { outline: 2px solid var(--primaire); border-color: transparent; }
-.liste { overflow-y: auto; padding: 0 24px 24px; display: flex; flex-direction: column; gap: 8px; }
+.liste { overscroll-behavior: contain; overflow-y: auto; padding: 0 24px 24px; display: flex; flex-direction: column; gap: 8px; }
 .entree {
   background: var(--ligne-chapitre); border-radius: 4px; padding: 12px 16px;
   font-size: 14px; line-height: 1.55;
@@ -73,6 +76,7 @@ input:focus { outline: 2px solid var(--primaire); border-color: transparent; }
 .terme { font-weight: 700; color: var(--texte-plein); display: block; margin-bottom: 2px; }
 .vide { font-size: 14px; color: var(--muted); padding: 12px 4px; }
 .vide code { background: var(--ligne-chapitre); padding: 1px 6px; border-radius: 4px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 @media (max-width: 768px) {
   .voile-lex { padding: 12px 8px; }
   input { margin: 12px 16px; }

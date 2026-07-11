@@ -43,6 +43,16 @@ const ty = ref(0)
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
 
+// Bornes : au moins MARGE px du monde restent toujours visibles — impossible de « perdre » la carte
+const MARGE = 160
+function borner() {
+  const el = carte.value
+  if (!el) return
+  const W = el.clientWidth, H = el.clientHeight
+  tx.value = clamp(tx.value, MARGE - W * k.value, W - MARGE)
+  ty.value = clamp(ty.value, MARGE - H * k.value, H - MARGE)
+}
+
 let animId = null
 function animateTo(k2, tx2, ty2, duree = 400) {
   if (animId) cancelAnimationFrame(animId)
@@ -77,7 +87,8 @@ function clicNoeud(m) {
 /* Pan : glisser le fond */
 let drag = null
 function surPointerDown(e) {
-  if (e.target.closest('.noeud')) return
+  if (e.target.closest('.noeud, .controles')) return // les nœuds ET les boutons de contrôle ne déclenchent pas le pan (la capture du pointeur avalerait leur clic)
+  if (animId) { cancelAnimationFrame(animId); animId = null } // le geste manuel reprend la main
   drag = { x: e.clientX, y: e.clientY, tx: tx.value, ty: ty.value }
   carte.value.setPointerCapture(e.pointerId)
 }
@@ -85,6 +96,7 @@ function surPointerMove(e) {
   if (!drag) return
   tx.value = drag.tx + (e.clientX - drag.x)
   ty.value = drag.ty + (e.clientY - drag.y)
+  borner()
 }
 function surPointerUp() { drag = null }
 
@@ -98,9 +110,19 @@ function surWheel(e) {
   tx.value = px - (px - tx.value) * (k2 / k.value)
   ty.value = py - (py - ty.value) * (k2 / k.value)
   k.value = k2
+  borner()
 }
 
-function recentrer() { animateTo(1, 0, 0, 450) }
+function recentrer() {
+  drag = null // aucun glisser fantôme ne doit écraser l'animation
+  animateTo(1, 0, 0, 450)
+}
+
+// Double-clic sur le fond = recentrer (le réflexe universel des cartes)
+function surDblClick(e) {
+  if (e.target.closest('.noeud, .controles')) return
+  recentrer()
+}
 
 defineExpose({ recentrer })
 </script>
@@ -114,7 +136,7 @@ defineExpose({ recentrer })
     }"
     @pointerdown="surPointerDown" @pointermove="surPointerMove"
     @pointerup="surPointerUp" @pointercancel="surPointerUp"
-    @wheel="surWheel"
+    @wheel="surWheel" @dblclick="surDblClick"
   >
     <div class="monde" :style="{ transform: 'translate(' + tx + 'px,' + ty + 'px) scale(' + k + ')' }">
       <svg class="fils" :class="{ estompe: !!actif }" viewBox="0 0 100 100" preserveAspectRatio="none">

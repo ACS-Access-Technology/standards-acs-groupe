@@ -110,7 +110,7 @@ function imprimer() {
 </script>
 
 <template>
-  <div class="voile-att" role="dialog" aria-modal="true" aria-labelledby="att-titre">
+  <div class="voile-att" role="dialog" aria-modal="true" :aria-labelledby="attestation ? 'att-titre-feuille' : 'att-titre'">
     <div class="att">
       <button class="fermer no-print" @click="emit('fermer')"><X :size="18" /></button>
 
@@ -132,7 +132,7 @@ function imprimer() {
 
       <template v-else>
         <div class="feuille" id="feuille-attestation">
-          <h2 id="att-titre">Attestation de parcours — Standards ACS Groupe</h2>
+          <h2 id="att-titre-feuille">Attestation de parcours — Standards ACS Groupe</h2>
           <p v-if="verifieServeur" class="statut ok">Contenu et hash générés et vérifiés côté serveur (PocketBase) — opposable.</p>
           <p v-else class="alerte-obsolete">
             <AlertTriangle :size="14" class="inline-ico" />

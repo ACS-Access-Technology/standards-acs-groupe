@@ -35,6 +35,7 @@ watch(() => props.doc, charger)
 
 <style scoped>
 .voile-doc {
+  overscroll-behavior: contain;
   position: fixed; inset: 0; z-index: 30;
   background: rgba(18, 28, 66, .35);
   display: flex; justify-content: center; padding: 48px 16px;
@@ -51,7 +52,7 @@ header {
 }
 header code { font-size: 13px; color: var(--muted); background: var(--ligne-chapitre); padding: 2px 8px; border-radius: 4px; }
 .fermer { border: none; background: none; color: var(--texte-plein); cursor: pointer; }
-.contenu { padding: 28px 36px 48px; overflow-y: auto; font-size: 15px; line-height: 1.7; }
+.contenu { overscroll-behavior: contain; padding: 28px 36px 48px; overflow-y: auto; font-size: 15px; line-height: 1.7; }
 
 .contenu :deep(h1) { font-size: 24px; font-weight: 700; color: var(--texte-plein); margin: 8px 0 16px; }
 .contenu :deep(h2) { font-size: 20px; font-weight: 700; color: var(--texte-plein); margin: 28px 0 10px; }
