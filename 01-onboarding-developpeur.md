@@ -69,7 +69,7 @@ Checklist signée par le développeur et le responsable technique, conservée da
 L'onboarding n'est terminé que lorsque les preuves suivantes sont consignées dans le registre des accès — un onboarding sans preuve est invérifiable en audit :
 
 - [ ] **Formation sécurité suivie et attestée** (date, contenu, signature) — couvre au minimum les interdictions absolues et la procédure de signalement d'incident.
-- [ ] **Lecture du corpus attestée** : le développeur atteste par écrit avoir lu les documents obligatoires du jour 1 ; l'attestation engage, elle n'est pas une formalité.
+- [ ] **Lecture du corpus attestée** : le développeur atteste par écrit avoir lu les documents obligatoires du jour 1 ; l'attestation engage, elle n'est pas une formalité. L'attestation générée par le parcours interactif (`parcours-acs/`, hash SHA-256 vérifiable) est admise comme preuve dès lors que les 19 modules et leurs quiz de validation sont terminés.
 - [ ] **MFA validée** : preuve d'activation sur chaque compte provisionné, vérifiée par le responsable technique — pas d'auto-déclaration.
 
 ## Revue d'accès à J+30
