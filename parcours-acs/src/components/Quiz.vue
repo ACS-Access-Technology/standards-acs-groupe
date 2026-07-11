@@ -27,8 +27,11 @@ const reussi = computed(() => score.value / props.questions.length >= SEUIL)
 
 function valider() {
   soumis.value = true
-  if (reussi.value) emit('reussi', { score: pct.value })
-  else emit('echec', { score: pct.value })
+  // Le score affiché ici est indicatif (UX immédiate). La valeur qui compte pour
+  // l'attestation est recalculée côté serveur à partir de `reponses` (Max, revue party mode).
+  const donnees = { score: pct.value, reponses: [...reponses.value] }
+  if (reussi.value) emit('reussi', donnees)
+  else emit('echec', donnees)
 }
 </script>
 

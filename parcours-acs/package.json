@@ -7,9 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "predev": "node scripts/gen-lexique.mjs && node scripts/sync-docs.mjs",
-    "prebuild": "node scripts/gen-lexique.mjs && node scripts/sync-docs.mjs",
-    "gen-lexique": "node scripts/gen-lexique.mjs"
+    "predev": "node scripts/gen-lexique.mjs && node scripts/sync-docs.mjs && node scripts/gen-bareme.mjs",
+    "prebuild": "node scripts/gen-lexique.mjs && node scripts/sync-docs.mjs && node scripts/gen-bareme.mjs",
+    "gen-lexique": "node scripts/gen-lexique.mjs",
+    "gen-bareme": "node scripts/gen-bareme.mjs"
   },
   "dependencies": {
     "lucide-vue-next": "^1.0.0",

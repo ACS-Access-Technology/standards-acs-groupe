@@ -123,11 +123,12 @@ function basculerTermine(moduleId) {
   p.termine = !p.termine
 }
 
-async function enregistrerQuiz(moduleId, score) {
+async function enregistrerQuiz(moduleId, { score, reponses }) {
   const p = progression.value[moduleId] || (progression.value[moduleId] = { objectifs: {}, termine: false })
-  p.quizScore = score
+  p.quizScore = score // indicatif, hors ligne uniquement — le hook PocketBase le recalcule et l'écrase à la synchro
   p.quizDate = new Date().toISOString()
   p.versionCorpus = await versionActuelle() // gel de la version validée (cf. Attestation.vue pour la détection d'obsolescence)
+  p.reponses = reponses // transmis au serveur pour revalidation (pocketbase/pb_hooks/main.pb.js) ; jamais affiché tel quel
 }
 
 function reinitialiser() {
@@ -217,7 +218,7 @@ function reinitialiser() {
       @fermer="fermerFiche()"
       @objectif="i => basculerObjectif(moduleActif.id, i)"
       @termine="basculerTermine(moduleActif.id)"
-      @quiz-reussi="score => enregistrerQuiz(moduleActif.id, score)"
+      @quiz-reussi="donnees => enregistrerQuiz(moduleActif.id, donnees)"
       @lire="d => docActif = d"
       @lexique="lexiqueOuvert = true"
     />
