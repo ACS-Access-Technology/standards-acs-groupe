@@ -15,7 +15,7 @@ export const erreur = ref('')
 const pb = actif ? new PocketBase(URL_PB) : null
 if (pb && pb.authStore.isValid) {
   connecte.value = true
-  nomDev.value = pb.authStore.model?.nom || pb.authStore.model?.email || ''
+  nomDev.value = (pb.authStore.record || pb.authStore.model)?.nom || (pb.authStore.record || pb.authStore.model)?.email || ''
 }
 
 /* --- File d'attente locale : dernier état par module (idempotent par nature) --- */
@@ -30,7 +30,7 @@ enAttente.value = Object.keys(lireFile()).length
 
 /* --- Envoi d'un module (upsert) --- */
 async function upsert(module, donnees, maj) {
-  const devId = pb.authStore.model.id
+  const devId = (pb.authStore.record || pb.authStore.model).id
   const existant = await pb.collection('progressions')
     .getList(1, 1, { filter: pb.filter('dev = {:dev} && module = {:module}', { dev: devId, module }) })
   const corps = { dev: devId, module, donnees, maj }
@@ -76,7 +76,7 @@ export async function connecter(email, motDePasse) {
   erreur.value = ''
   await pb.collection('users').authWithPassword(email, motDePasse)
   connecte.value = true
-  nomDev.value = pb.authStore.model?.nom || pb.authStore.model?.email || ''
+  nomDev.value = (pb.authStore.record || pb.authStore.model)?.nom || (pb.authStore.record || pb.authStore.model)?.email || ''
   const distante = await rapatrier()
   await vider()
   return distante
@@ -91,12 +91,19 @@ export function deconnecter() {
 /* --- Rapatriement : fusion PAR MODULE sur l'horodatage le plus récent.
    Simplification assumée et documentée (donnée pédagogique) — cf. pocketbase/README.md --- */
 export async function rapatrier() {
-  const devId = pb.authStore.model.id
+  const devId = (pb.authStore.record || pb.authStore.model).id
   const enregistrements = await pb.collection('progressions')
     .getFullList({ filter: pb.filter('dev = {:dev}', { dev: devId }) })
   const distante = {}
   for (const r of enregistrements) distante[r.module] = { donnees: r.donnees, maj: r.maj }
   return distante
+}
+
+/* --- Attestation (append-only, uniquement si connecté) --- */
+export async function enregistrerAttestation(contenu, hash) {
+  if (!actif || !pb.authStore.isValid) return null
+  const devId = (pb.authStore.record || pb.authStore.model).id
+  return pb.collection('attestations').create({ dev: devId, contenu, hash, emis: new Date().toISOString() })
 }
 
 /* --- Reprise automatique au retour du réseau --- */

@@ -3,7 +3,7 @@ import {
   Landmark, Rocket, Braces, GitBranch, Wrench, Layers, Plug, ClipboardList,
   FlaskConical, ShieldCheck, Database, Workflow, Gauge, Map, RefreshCw,
   SearchCheck, AlertTriangle, Route, Bot,
-  X, Lock, BookOpen, CheckCircle2,
+  X, Lock, BookOpen, CheckCircle2, Download, Printer,
 } from 'lucide-vue-next'
 
 export const icones = {
@@ -12,4 +12,4 @@ export const icones = {
   SearchCheck, AlertTriangle, Route, Bot,
 }
 
-export { X, Lock, BookOpen, CheckCircle2 }
+export { X, Lock, BookOpen, CheckCircle2, Download, Printer }
